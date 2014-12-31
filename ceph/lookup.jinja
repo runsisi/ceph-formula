@@ -1,6 +1,27 @@
 {% set ceph = salt['grains.filter_by']({
-    'Debian': {
+    'default': {
+        'pkgs': ['ceph',],
+        'release': 'giant',
+        'manage_repo': True,
+        
+        'cluster': 'ceph',
+        'fsid': '4574b049-dfd3-49c7-8618-95863f3cb084',
+        'authentication_type': 'cephx',
+        'mon_initial_members': 'ceph-mon0, ceph-mon1, ceph-mon2',
+        'mon_host': 'ceph-mon0.test:6789, ceph-mon1.test:6789, ceph-mon2.test:6789',
+        'osd_pool_default_pg_num': '200',
+        'osd_pool_default_pgp_num': '200',
+        'osd_pool_default_size': '2',
+        'osd_pool_default_min_size': '1',
+        'cluster_network': '192.168.134.0/24',
+        'public_network': '192.168.133.0/24',
+
+        'admin_key': 'AQBMGHJTkC8HKhAAJ7NH255wYypgm1oVuV41MA==',
+        'admin_key_mode': '0600',
+        'mon_key': 'AQATGHJTUCBqIBAA7M2yafV1xctn1pgr3GcKPg==',
+        'bootstrap_osd_key': 'AQARG3JTsDDEHhAAVinHPiqvJkUi5Mww/URupw==',
+        'bootstrap_mds_key': 'AQCztJdSyNb0NBAASA2yPZPuwXeIQnDJ9O8gVw==',
+
+        'osds': [{}],
     },
-    'RedHat': {
-    },
-}, merge=salt['pillar.get']('ceph:lookup')) %}
+}, merge = salt['pillar.get']('ceph:lookup')) %}
