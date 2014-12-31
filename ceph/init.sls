@@ -1,5 +1,3 @@
-# install
-
 {% from "ceph/lookup.jinja" import ceph with context %}
 
 {% if ceph.manage_repo %}
@@ -22,3 +20,13 @@ ceph-pkg:
       - pkgrepo: ceph-noarch-repo
     {% endif %}
     {% endif %}
+
+ceph-config:
+  file.managed:
+    - name: /etc/ceph/{{ ceph.cluster }}.conf
+    - source: salt://ceph/files/ceph.conf
+    - template: jinja
+    - makedirs: True
+    - user: root
+    - group: root
+    - mode: 644

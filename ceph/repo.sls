@@ -1,5 +1,3 @@
-# package repository
-
 {% from "ceph/lookup.jinja" import ceph with context %}
 
 {% if ceph.manage_repo %}
