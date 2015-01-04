@@ -19,9 +19,11 @@
         'admin_key': 'AQBMGHJTkC8HKhAAJ7NH255wYypgm1oVuV41MA==',
         'admin_key_mode': '0600',
         'mon_key': 'AQATGHJTUCBqIBAA7M2yafV1xctn1pgr3GcKPg==',
+        'mon_keyring': '',
         'bootstrap_osd_key': 'AQARG3JTsDDEHhAAVinHPiqvJkUi5Mww/URupw==',
         'bootstrap_mds_key': 'AQCztJdSyNb0NBAASA2yPZPuwXeIQnDJ9O8gVw==',
 
+        'mon_ids': [grains['host'],],
         'osds': [{}],
     },
 }, merge = salt['pillar.get']('ceph:lookup')) %}

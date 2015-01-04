@@ -5,7 +5,7 @@ include:
   - ceph.repo
 {% endif %}
 
-ceph-pkg:
+ceph-pkgs:
   pkg.installed:
     - names:
     {% for pkg in ceph.pkgs %}
@@ -24,9 +24,11 @@ ceph-pkg:
 ceph-config:
   file.managed:
     - name: /etc/ceph/{{ ceph.cluster }}.conf
-    - source: salt://ceph/files/ceph.conf
     - template: jinja
+    - source: salt://ceph/files/ceph.conf
     - makedirs: True
     - user: root
     - group: root
     - mode: 644
+    - require:
+      - pkg: ceph-pkgs
