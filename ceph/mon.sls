@@ -1,63 +1,81 @@
+{% from "ceph/lookup.jinja" import config with context %}
 {% from "ceph/lookup.jinja" import ceph with context %}
 
-{% if ceph.cluster != '' %}
-{% set cluster_option = '--cluster ' ~ ceph.cluster %}
+include:
+  - ceph
+
+{% if config.cluster != '' %}
+{% set cluster_option = '--cluster ' ~ config.cluster %}
 {% else %}
 {% set cluster_option = '' %}
 {% endif %}
 
-{% if ceph.authentication_type == 'cephx' %}
-{% if ceph.mon_key != '' %}
-{% set keyring_path = '/tmp/' ~ ceph.cluster ~ '-mon-keyring' %}
-mon.keyring:
+{% if ceph.public_addr != '' %}
+{% set public_addr_option = '--public_addr ' ~ ceph.public_addr %}
+{% else %}
+{% set public_addr_option = '' %}
+{% endif %}
+
+{% set mon_data = salt['cmd.run'](
+    'ceph-mon ' ~ cluster_option ~ ' --id ' ~ ceph.mon_id 
+    ~ ' --show-config-value mon_data') %}
+
+{% if config.authentication_type == 'cephx' %}
+{% if config.mon_key != '' %}
+{% set keyring_path = '/tmp/' ~ config.cluster ~ '-mon-keyring' %}
+ceph.mon.create.keyring:
   file.managed:
     - name: {{ keyring_path }}
     - mode: 444
-    - contents: "[mon.]\n\tkey = {{ ceph.mon_key }}\n\tcaps mon = \"allow *\"\n"
-{% elif ceph.mon_keyring != '' %}
-{% set keyring_path = ceph.mon_keyring %}
+    - contents: "[mon.]\n\tkey = {{ config.mon_key }}\n\tcaps mon = \"allow *\"\n"
+    - require:
+      - file: ceph.config
+    - require_in:
+      - cmd: ceph.mon.mkdir.{{ ceph.mon_id }}
+{% elif config.mon_keyring != '' %}
+{% set keyring_path = config.mon_keyring %}
 {% endif %}
 {% else %}
 {% set keyring_path = '/dev/null' %}
 {% endif %}
 
-{% if ceph.public_network != '' %}
-{% set public_addr_option = '--public_addr ' ~ ceph.public_network %}
-{% else %}
-{% set public_addr_option = '' %}
-{% endif %}
+ceph.mon.mkdir.{{ ceph.mon_id }}:
+  file.directory:
+    - name: {{ mon_data }}
 
-{% if grains['os'] == 'Ubuntu' or grains['os'] == 'Deepin' %}
-{% set init = 'upstart' %}
-{% elif grains['os'] == 'Debian' or grains['os_family'] == 'RedHat' %}
-{% set init = 'sysvinit' %}
-{% endif %}
-
-{% for mon_id in ceph.mon_ids %}
-mon.mkfs.{{ mon_id }}:
+ceph.mon.mkfs.{{ ceph.mon_id }}:
   cmd.run:
-    - name: |
-        mon_data=$(ceph-mon {{ cluster_option }} --id {{ mon_id }} --show-config-value mon_data)
-        if [ ! -d $mon_data ]; then
-          mkdir -p $mon_data
-          if ceph-mon {{ cluster_option }} \
-            {{ public_addr_option }} \
-            --mkfs \
-            --id {{ mon_id }} \
-            --keyring {{ keyring_path }}; then
-            touch $mon_data/done $mon_data/{{ init }} $mon_data/keyring
-          else
-            rm -rf $mon_data
-          fi
-        fi
-
-mon.start.{{ mon_id }}:
-  cmd.run:
-{% if grains['os'] == 'Ubuntu' or grains['os'] == 'Deepin' %}
-    - name: start ceph-mon id={{ mon_id }}
-{% elif grains['os'] == 'Debian' or grains['os_family'] == 'RedHat' %}
-    - name: service ceph start mon.{{ mon_id }}
-{% endif %}
+    - name: >
+        ceph-mon {{ cluster_option }} {{ public_addr_option }}
+        --mkfs --id {{ ceph.mon_id }} --keyring {{ keyring_path }}
     - require:
-      - cmd: mon.mkfs.{{ mon_id }}
-{% endfor %}
+      - file: ceph.mon.mkdir.{{ ceph.mon_id }}
+
+ceph.mon.touch.dummy.files.{{ ceph.mon_id }}:
+  file.managed:
+    - names: 
+        - /etc/ceph/{{ config.cluster }}.client.admin.keyring
+        - {{ mon_data }}/done
+        - {{ mon_data }}/sysvinit
+        - {{ mon_data }}/keyring
+    - replace: False
+    - require:
+      - cmd: ceph.mon.mkfs.{{ ceph.mon_id }}
+
+ceph.mon.start.{{ ceph.mon_id }}:
+  cmd.wait:
+    - name: /etc/init.d/ceph {{ cluster_option }} restart mon.{{ ceph.mon_id }}
+    - require:
+      - file: ceph.mon.touch.dummy.files.{{ ceph.mon_id }}
+    - watch:
+      - file: ceph.config
+
+{% if config.authentication_type == 'cephx' %}
+{% if config.mon_key != '' %}
+ceph.mon.delete.keyring:
+  file.absent:
+    - name: {{ keyring_path }}
+    - require:
+      - file: ceph.mon.create.keyring
+{% endif %}
+{% endif %}
