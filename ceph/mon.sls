@@ -31,7 +31,7 @@ ceph.mon.create.keyring:
     - require:
       - file: ceph.config
     - require_in:
-      - cmd: ceph.mon.mkdir.{{ ceph.mon_id }}
+      - cmd: ceph.mon.mkfs.{{ ceph.mon_id }}
 {% elif config.mon_keyring != '' %}
 {% set keyring_path = config.mon_keyring %}
 {% endif %}
@@ -39,17 +39,13 @@ ceph.mon.create.keyring:
 {% set keyring_path = '/dev/null' %}
 {% endif %}
 
-ceph.mon.mkdir.{{ ceph.mon_id }}:
+ceph.mon.mkfs.{{ ceph.mon_id }}:
   file.directory:
     - name: {{ mon_data }}
-
-ceph.mon.mkfs.{{ ceph.mon_id }}:
   cmd.run:
     - name: >
         ceph-mon {{ cluster_option }} {{ public_addr_option }}
         --mkfs --id {{ ceph.mon_id }} --keyring {{ keyring_path }}
-    - require:
-      - file: ceph.mon.mkdir.{{ ceph.mon_id }}
 
 ceph.mon.touch.dummy.files.{{ ceph.mon_id }}:
   file.managed:
@@ -67,7 +63,7 @@ ceph.mon.start.{{ ceph.mon_id }}:
     - name: /etc/init.d/ceph {{ cluster_option }} restart mon.{{ ceph.mon_id }}
     - require:
       - file: ceph.mon.touch.dummy.files.{{ ceph.mon_id }}
-    - watch:
+    - onchanges:
       - file: ceph.config
 
 {% if config.authentication_type == 'cephx' %}
