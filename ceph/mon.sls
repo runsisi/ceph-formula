@@ -59,11 +59,18 @@ ceph.mon.touch.dummy.files.{{ ceph.mon_id }}:
       - cmd: ceph.mon.mkfs.{{ ceph.mon_id }}
 
 ceph.mon.start.{{ ceph.mon_id }}:
+  cmd.run:
+    - name: /etc/init.d/ceph {{ cluster_option }} start mon.{{ ceph.mon_id }}
+    - unless: /etc/init.d/ceph {{ cluster_option }} status mon.{{ ceph.mon_id }}
+    - require:
+      - file: ceph.mon.touch.dummy.files.{{ ceph.mon_id }}
+
+ceph.mon.restart.{{ ceph.mon_id }}:
   cmd.wait:
     - name: /etc/init.d/ceph {{ cluster_option }} restart mon.{{ ceph.mon_id }}
     - require:
       - file: ceph.mon.touch.dummy.files.{{ ceph.mon_id }}
-    - onchanges:
+    - watch:
       - file: ceph.config
 
 {% if config.authentication_type == 'cephx' %}
