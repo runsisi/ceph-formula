@@ -4,21 +4,18 @@
 include:
   - ceph
 
-{% if config.authentication_type == 'cephx' %}
-{% set keyring_option = '--keyring /tmp/' ~ config.cluster ~ '.mon.tmp.keyring' %}
-{% else %}
-{% set keyring_option = '' %}
-{% endif %}
+{% set keyring_option = '--keyring /tmp/' ~ config.cluster ~ '.mon.tmp.keyring'
+    if config.authentication_type == 'cephx' else ''
+%}
 
-{% if ceph.public_addr != '' %}
-{% set public_addr_option = '--public_addr ' ~ ceph.public_addr %}
-{% else %}
-{% set public_addr_option = '' %}
-{% endif %}
+{% set public_addr_option = '--public_addr ' ~ ceph.public_addr  
+    if ceph.public_addr != '' else ''
+%}
 
 {% set mon_data_dir = salt['cmd.run'](
     'ceph-mon --cluster ' ~ config.cluster ~ ' --id ' ~ ceph.mon_id 
-    ~ ' --show-config-value mon_data') %}
+    ~ ' --show-config-value mon_data')
+%}
 
 {% if config.authentication_type == 'cephx' %}
 ceph.mon.tmp.keyring.create:
@@ -50,6 +47,8 @@ ceph.mon.mkfs:
   file.directory:
     - name: {{ mon_data_dir }}
     - makedirs: True
+    - require:
+      - file: ceph.config
   cmd.run:
     - name: >
         ceph-mon --cluster {{ config.cluster }}

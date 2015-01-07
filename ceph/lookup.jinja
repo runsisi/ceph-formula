@@ -51,7 +51,7 @@
     'default': {
         'mon_id': grains['host'],
         'public_addr': grains['ipv4'][0] + ':6789',
-        'osds': [{},],
-        
+        'osds': [{'data': '/ceph', 'journal': '/tmp/journal'},
+                 {'data': '/xxx',},],
     },
 }, grain = 'host', merge = salt['pillar.get']('ceph:lookup')) %}
