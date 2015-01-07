@@ -5,7 +5,7 @@ include:
   - ceph
 
 {% if config.authentication_type == 'cephx' %}
-{% set keyring_option = '--keyring /tmp/' ~ config.cluster ~ '-mon-keyring' %}
+{% set keyring_option = '--keyring /tmp/' ~ config.cluster ~ '.mon.tmp.keyring' %}
 {% else %}
 {% set keyring_option = '' %}
 {% endif %}
@@ -21,23 +21,27 @@ include:
     ~ ' --show-config-value mon_data') %}
 
 {% if config.authentication_type == 'cephx' %}
-ceph.mon.keyring.create:
+ceph.mon.tmp.keyring.create:
   file.managed:
-    - name: {{ mon_data_dir }}/keyring
+    - name: /tmp/{{ config.cluster }}.mon.tmp.keyring
+    - makedirs: True
     - mode: 644
     - replace: False
     - require:
       - file: ceph.config
+    - unless:
+      - test -f {{ mon_data_dir }}/keyring
   cmd.run:
     - name: >
-        ceph-authtool {{ mon_data_dir }}/keyring
+        ceph-authtool /tmp/{{ config.cluster }}.mon.tmp.keyring
         --name mon. --add-key {{ config.mon_key }}
         --cap mon 'allow *'
     - unless: >
-        ceph-authtool {{ mon_data_dir }}/keyring
+        ceph-authtool /tmp/{{ config.cluster }}.mon.tmp.keyring
         --name mon. --print-key | grep {{ config.mon_key }}
+    - creates: {{ mon_data_dir }}/keyring
     - require:
-      - file: ceph.mon.keyring.create
+      - file: ceph.mon.tmp.keyring.create
     - require_in:
       - cmd: ceph.mon.mkfs
 {% endif %}
@@ -45,11 +49,13 @@ ceph.mon.keyring.create:
 ceph.mon.mkfs:
   file.directory:
     - name: {{ mon_data_dir }}
+    - makedirs: True
   cmd.run:
     - name: >
         ceph-mon --cluster {{ config.cluster }}
         --conf /etc/ceph/{{ config.cluster }}.conf
         --mkfs --id {{ ceph.mon_id }} {{ keyring_option }} {{ public_addr_option }}
+    - creates: {{ mon_data_dir }}/done
 
 ceph.mon.dummy.files.touch:
   file.managed:
@@ -57,13 +63,25 @@ ceph.mon.dummy.files.touch:
         - {{ mon_data_dir }}/done
         - {{ mon_data_dir }}/sysvinit
 {% if config.authentication_type == 'cephx' %}
-        - {{ mon_data_dir }}/keyring
         - /etc/ceph/{{ config.cluster }}.client.admin.keyring
         - /var/lib/ceph/bootstrap-osd/{{ config.cluster }}.keyring
         - /var/lib/ceph/bootstrap-mds/{{ config.cluster }}.keyring
 {% endif %}
+    - makedirs: True
     - replace: False
     - require:
+      - cmd: ceph.mon.mkfs
+
+ceph.mon.restart:
+  cmd.wait:
+    - name: >
+        /etc/init.d/ceph --cluster {{ config.cluster }}
+        --conf /etc/ceph/{{ config.cluster }}.conf
+        restart mon.{{ ceph.mon_id }}
+    - require:
+      - file: ceph.mon.dummy.files.touch
+    - watch:
+      - file: ceph.config
       - cmd: ceph.mon.mkfs
 
 ceph.mon.start:
@@ -79,18 +97,27 @@ ceph.mon.start:
     - require:
       - file: ceph.mon.dummy.files.touch
 
-ceph.mon.restart:
-  cmd.wait:
-    - name: >
-        /etc/init.d/ceph --cluster {{ config.cluster }}
-        --conf /etc/ceph/{{ config.cluster }}.conf
-        restart mon.{{ ceph.mon_id }}
-    - require:
-      - file: ceph.mon.dummy.files.touch
-    - watch:
-      - file: ceph.config
-
 {% if config.authentication_type == 'cephx' %}
+ceph.mon.keyring.create:
+  file.managed:
+    - name: {{ mon_data_dir }}/keyring
+    - mode: 644
+    - replace: False
+    - require:
+      - file: ceph.mon.mkfs
+    - require_in:
+      - file: ceph.mon.dummy.files.touch
+  cmd.run:
+    - name: >
+        ceph-authtool {{ mon_data_dir }}/keyring
+        --name mon. --add-key {{ config.mon_key }}
+        --cap mon 'allow *'
+    - unless: >
+        ceph-authtool {{ mon_data_dir }}/keyring
+        --name mon. --print-key | grep {{ config.mon_key }}
+    - require:
+      - file: ceph.mon.keyring.create
+
 ceph.client.admin.keyring.create:
   file.managed:
     - name: /etc/ceph/{{ config.cluster }}.client.admin.keyring
@@ -186,4 +213,10 @@ ceph.client.bootstrap-mds.key.inject:
         auth get client.bootstrap-mds | grep {{ config.bootstrap_mds_key }}
     - require:
       - cmd: ceph.client.bootstrap-mds.keyring.create
+
+ceph.mon.tmp.keyring.delete:
+  file.absent:
+    - name: /tmp/{{ config.cluster }}.mon.tmp.keyring
+    - require:
+      - file: ceph.mon.tmp.keyring.create
 {% endif %}
