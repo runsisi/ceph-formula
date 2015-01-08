@@ -1,29 +1,53 @@
-{% set base = salt['grains.filter_by']({
+{% set pkg = salt['grains.filter_by']({
     'Debian': {
         'pkgs': ['ceph',],
-        'release': 'giant',
         'manage_repo': True,
-        'repos': ['ceph.repo',],
+        'repos': [
+            {'name': 'deb http://ceph.com/debian-giant ' + salt['grains.get']('oscodename') + ' main',
+             'humanname': 'ceph',
+             'dist': salt['grains.get']('oscodename'),
+             'file': '/etc/apt/sources.list.d/ceph.list',
+             'key_url': 'https://ceph.com/git/?p=ceph.git;a=blob_plain;f=keys/release.asc',
+            },
+        ],
     },
-    'Redhat': {
+    'Deepin': {
         'pkgs': ['ceph',],
-        'release': 'giant',
         'manage_repo': True,
-        'repos': ['ceph.repo', 'ceph-noarch.repo'],
+        'repos': [
+            {'name': 'deb http://ceph.com/debian-giant ' + salt['grains.get']('oscodename') + ' main',
+             'humanname': 'ceph',
+             'dist': salt['grains.get']('oscodename'),
+             'file': '/etc/apt/sources.list.d/ceph.list',
+             'key_url': 'https://ceph.com/git/?p=ceph.git;a=blob_plain;f=keys/release.asc',
+            },
+        ],
     },
-    'default': {
+    'RedHat': {
         'pkgs': ['ceph',],
-        'release': 'giant',
         'manage_repo': True,
-        'repos': ['ceph.repo',],
+        'repos': [
+            {'name': 'ceph',
+             'humanname': 'ceph',
+             'baseurl': 'http://ceph.com/rpm-giant/el' + salt['grains.get']('osmajorrelease', ['6'])[0] + '/$basearch',
+             'gpgcheck': '1',
+             'gpgkey': 'https://ceph.com/git/?p=ceph.git;a=blob_plain;f=keys/release.asc',
+            },
+            {'name': 'ceph-noarch',
+             'humanname': 'ceph-noarch',
+             'baseurl': 'http://ceph.com/rpm-giant/el' + salt['grains.get']('osmajorrelease', ['6'])[0] + '/noarch',
+             'gpgcheck': '1',
+             'gpgkey': 'https://ceph.com/git/?p=ceph.git;a=blob_plain;f=keys/release.asc',
+            },
+        ],
     },
-}, grain = 'os_family', merge = salt['pillar.get']('ceph:lookup')) %}
+}, grain = 'os_family', merge = salt['pillar.get']('ceph:pkg')) %}
 
-{% set config = salt['grains.filter_by']({
+{% set conf = salt['grains.filter_by']({
     'default': {
         'cluster': 'ceph',
 
-        'fsid': '5574b049-dfd3-49c7-8618-95863f3cb084',
+        'fsid': '08a80810-eff9-4982-8cf3-37aded9e1802',
         'authentication_type': 'cephx',
         'mon_initial_members': 'hust,',
         'mon_host': 'hust:6789,',
@@ -34,24 +58,26 @@
         'osd_pool_default_pgp_num': '200',
         'osd_pool_default_size': '2',
         'osd_pool_default_min_size': '1',
+        'osd_crush_chooseleaf_type': '0',
 
         'mon_key': 'AQATGHJTUCBqIBAA7M2yafV1xctn1pgr3GcKPg==',
         'admin_key': 'AQBMGHJTkC8HKhAAJ7NH255wYypgm1oVuV41MA==',
         'bootstrap_osd_key': 'AQARG3JTsDDEHhAAVinHPiqvJkUi5Mww/URupw==',
         'bootstrap_mds_key': 'AQCztJdSyNb0NBAASA2yPZPuwXeIQnDJ9O8gVw==',
     },
-}, merge = salt['pillar.get']('ceph:lookup')) %}
+}, merge = salt['pillar.get']('ceph:conf')) %}
 
-{% set ceph = salt['grains.filter_by']({
-    'brs159': {
-        'mon_id': grains['host'],
-        'public_addr': '',
-        'osds': [{},],
-    },
+{% set mon = salt['grains.filter_by']({
     'default': {
-        'mon_id': grains['host'],
-        'public_addr': grains['ipv4'][0] + ':6789',
-        'osds': [{'data': '/ceph', 'journal': '/tmp/journal'},
-                 {'data': '/xxx',},],
+        'mon_id': salt['grains.get']('host'),
     },
-}, grain = 'host', merge = salt['pillar.get']('ceph:lookup')) %}
+}, grain = 'host', merge = salt['pillar.get']('ceph:mon')) %}
+
+{% set osd = salt['grains.filter_by']({
+    'default': {
+        'osds': [
+            {'data': '/ceph1', 'journal': '/tmp/journal1'},
+            {'data': '/ceph2',},
+        ],
+    },
+}, grain = 'host', merge = salt['pillar.get']('ceph:osd')) %}

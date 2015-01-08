@@ -1,28 +1,28 @@
-{% from "ceph/lookup.jinja" import config with context %}
-{% from "ceph/lookup.jinja" import ceph with context %}
+{% from "ceph/lookup.jinja" import conf with context %}
+{% from "ceph/lookup.jinja" import osd with context %}
 
 include:
-  - ceph
+  - ceph.conf
 
 ceph.osd.keyring.create:
   file.managed:
-    - name: /var/lib/ceph/bootstrap-osd/{{ config.cluster }}.keyring
+    - name: /var/lib/ceph/bootstrap-osd/{{ conf.cluster }}.keyring
     - mode: 644
     - replace: False
     - require:
-      - file: ceph.config
+      - file: ceph.conf.setup
   cmd.run:
     - name: >
-        ceph-authtool /var/lib/ceph/bootstrap-osd/{{ config.cluster }}.keyring
-        --name client.bootstrap-osd --add-key {{ config.bootstrap_osd_key }}
+        ceph-authtool /var/lib/ceph/bootstrap-osd/{{ conf.cluster }}.keyring
+        --name client.bootstrap-osd --add-key {{ conf.bootstrap_osd_key }}
         --cap mon 'allow profile bootstrap-osd'
     - unless: >
-        ceph-authtool /var/lib/ceph/bootstrap-osd/{{ config.cluster }}.keyring
-        --name client.bootstrap-osd --print-key | grep {{ config.bootstrap_osd_key }}
+        ceph-authtool /var/lib/ceph/bootstrap-osd/{{ conf.cluster }}.keyring
+        --name client.bootstrap-osd --print-key | grep {{ conf.bootstrap_osd_key }}
     - require:
       - file: ceph.osd.keyring.create
 
-{% for osd in ceph.osds %}
+{% for osd in osd.osds %}
 {% set data = osd['data'] %}
 {% set journal = osd['journal'] if osd['journal'] is defined else '' %}
 
@@ -33,11 +33,11 @@ ceph.osd.{{ data }}.prepare:
     - unless: ! test -b {{ data }}
   cmd.run:
     - name: >
-        ceph-disk prepare --cluster {{ config.cluster }}
+        ceph-disk prepare --cluster {{ conf.cluster }}
         {{ data }} {{ journal }}
     - unless:
       - ceph-disk list | grep ' *{{ data }}.*ceph data, active'
-      - ls -l /var/lib/ceph/osd/{{ config.cluster }}-* | grep {{ data }}
+      - ls -l /var/lib/ceph/osd/{{ conf.cluster }}-* | grep {{ data }}
     - require:
       - file: ceph.osd.{{ data }}.prepare
 
