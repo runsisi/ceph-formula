@@ -12,10 +12,15 @@ include:
     if mon.public_addr is defined and mon.public_addr != '' else ''
 %}
 
-# mon.sls must be executed after pkg.sls:)
-{% set mon_data_dir = salt['cmd.run'](
-    'ceph-mon --cluster ' + conf.cluster + ' --id ' + mon.mon_id
-    + ' --show-config-value mon_data')
+{% set mon_data_dir = mon.mon_data
+    | replace('$name', '$type.$id')
+    | replace('$cluster', conf.cluster)
+    | replace('$type', 'mon')
+    | replace('$id', mon.mon_id)
+    | replace('$type', 'mon')
+    | replace('$host',  salt['grains.get']('host'))
+    if mon.mon_data is defined and mon.mon_data != ''
+    else '/var/lib/ceph/mon/' + conf.cluster + '-' + mon.mon_id
 %}
 
 {% if conf.authentication_type == 'cephx' %}

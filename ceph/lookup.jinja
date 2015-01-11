@@ -70,6 +70,7 @@
 {% set mon = salt['grains.filter_by']({
     'default': {
         'mon_id': salt['grains.get']('host'),
+        'mon_data': '/var/lib/ceph/mon/$cluster-$id'
     },
 }, grain = 'host', merge = salt['pillar.get']('ceph:mon')) %}
 
