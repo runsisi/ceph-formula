@@ -8,6 +8,7 @@ base:
   'brs8':
     - match: list
     - ceph.osd
-  'runsisi-hust':
+  'runsisi-pc':
     - match: list
     - ceph.mon
+    - ceph.osd

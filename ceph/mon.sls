@@ -5,25 +5,34 @@ include:
   - ceph.conf
 
 {% set keyring_option = '--keyring /tmp/' + conf.cluster + '.mon.tmp.keyring'
-    if conf.authentication_type == 'cephx' else ''
+    if conf.global.authentication_type == 'cephx'
+    else ''
 %}
 
 {% set public_addr_option = '--public_addr ' + mon.public_addr
-    if mon.public_addr is defined and mon.public_addr != '' else ''
+    if mon.public_addr is defined and mon.public_addr != ''
+    else ''
 %}
 
-{% set mon_data_dir = mon.mon_data
+{% if conf.mon is defined and conf.mon is not none %}
+{% set mon_data = conf.mon.mon_data | trim
+    if conf.mon.mon_data is defined and conf.mon.mon_data is not none
+    else '/var/lib/ceph/mon/$cluster-$id'
+%}
+{% else %}
+{% set mon_data = '/var/lib/ceph/mon/$cluster-$id' %}
+{% endif %}
+
+{% set mon_data_dir = mon_data
     | replace('$name', '$type.$id')
     | replace('$cluster', conf.cluster)
     | replace('$type', 'mon')
     | replace('$id', mon.mon_id)
     | replace('$type', 'mon')
     | replace('$host',  salt['grains.get']('host'))
-    if mon.mon_data is defined and mon.mon_data != ''
-    else '/var/lib/ceph/mon/' + conf.cluster + '-' + mon.mon_id
 %}
 
-{% if conf.authentication_type == 'cephx' %}
+{% if conf.global.authentication_type == 'cephx' %}
 ceph.mon.tmp.keyring.create:
   file.managed:
     - name: /tmp/{{ conf.cluster }}.mon.tmp.keyring
@@ -67,7 +76,7 @@ ceph.mon.dummy.files.touch:
     - names:
         - {{ mon_data_dir }}/done
         - {{ mon_data_dir }}/sysvinit
-{% if conf.authentication_type == 'cephx' %}
+{% if conf.global.authentication_type == 'cephx' %}
         - /etc/ceph/{{ conf.cluster }}.client.admin.keyring
         - /var/lib/ceph/bootstrap-osd/{{ conf.cluster }}.keyring
         - /var/lib/ceph/bootstrap-mds/{{ conf.cluster }}.keyring
@@ -102,7 +111,7 @@ ceph.mon.start:
     - require:
       - file: ceph.mon.dummy.files.touch
 
-{% if conf.authentication_type == 'cephx' %}
+{% if conf.global.authentication_type == 'cephx' %}
 ceph.mon.keyring.create:
   file.managed:
     - name: {{ mon_data_dir }}/keyring
