@@ -1,3 +1,3 @@
 ceph:
   mon:
-    mon_id: {{ salt['grains.get']('host') }}
+    #mon_id: {{ salt['grains.get']('host') }}
