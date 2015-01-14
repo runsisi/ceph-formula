@@ -1,6 +1,6 @@
 # As of release 2014.7.0, the grains.filter_by interface in salt-ssh
-# does not support 'default' and 'base' keyword parameters, change the
-# 'grain' keyword parameter's value accordingly if this has been fixed.
+# does not support 'default' and 'base' keyword parameters, so do not
+# use this formula under salt-ssh unless you change the code accordingly.
 
 {% set pkg = salt['grains.filter_by']({
     'Debian': {
@@ -54,7 +54,7 @@
 }, grain = 'os_family', merge = salt['pillar.get']('ceph:pkg')) %}
 
 {% set conf = salt['grains.filter_by']({
-    'Linux': {
+    'default': {
         'cluster': 'ceph',
         'mon_key': 'AQATGHJTUCBqIBAA7M2yafV1xctn1pgr3GcKPg==',
         'admin_key': 'AQBMGHJTkC8HKhAAJ7NH255wYypgm1oVuV41MA==',
@@ -70,17 +70,17 @@
             'mon_host': 'hust:6789,',
         },
     },
-}, grain = 'kernel', merge = salt['pillar.get']('ceph:conf')) %}
+}, merge = salt['pillar.get']('ceph:conf')) %}
 
 {% set mon = salt['grains.filter_by']({
-    'Linux': {'mon_id': salt['grains.get']('host'),},
-}, grain = 'kernel', merge = salt['pillar.get']('ceph:mon')) %}
+    'default': {'mon_id': salt['grains.get']('host'),},
+}, grain = 'host', merge = salt['pillar.get']('ceph:mon')) %}
 
 {% set osd = salt['grains.filter_by']({
-    'Linux': {
+    'default': {
         'osds': [
             {'data': '/ceph-xxx',},
             {'data': '/ceph-yyy', 'jounal': '/tmp/ceph-yyy-jounal'},
         ],
     },
-}, grain = 'kernel', merge = salt['pillar.get']('ceph:osd')) %}
+}, grain = 'host', merge = salt['pillar.get']('ceph:osd')) %}
