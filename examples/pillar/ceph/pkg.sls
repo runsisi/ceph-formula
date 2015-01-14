@@ -23,9 +23,15 @@ ceph:
         gpgcheck: 1
         gpgkey: https://ceph.com/git/?p=ceph.git;a=blob_plain;f=keys/release.asc
 
-      - name: ceph-noarch
-        humanname: ceph-noarch
-        baseurl: http://ceph.com/rpm-giant/el{{ salt['grains.get']('osmajorrelease')[0] }}/noarch
+      - name: base
+        humanname: base
+        baseurl: http://mirrors.sohu.com/centos/{{ salt['grains.get']('osmajorrelease')[0] }}/os/$basearch
         gpgcheck: 1
-        gpgkey: https://ceph.com/git/?p=ceph.git;a=blob_plain;f=keys/release.asc
+        gpgkey: http://mirrors.sohu.com/centos/RPM-GPG-KEY-CentOS-{{ salt['grains.get']('osmajorrelease')[0] }}
+
+      - name: epel
+        humanname: epel
+        baseurl: http://mirrors.sohu.com/fedora-epel/{{ salt['grains.get']('osmajorrelease')[0] }}/$basearch
+        gpgcheck: 1
+        gpgkey: http://mirrors.sohu.com/fedora-epel/RPM-GPG-KEY-EPEL-{{ salt['grains.get']('osmajorrelease')[0] }}
 {% endif %}
