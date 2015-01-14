@@ -1,6 +1,6 @@
 ceph.mon.setup:
   salt.state:
-    - tgt: 'runsisi-hust'
+    - tgt: 'brs82, brs98, brs159'
     - tgt_type: list
     - sls:
       - ceph.mon

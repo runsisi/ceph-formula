@@ -1,0 +1,16 @@
+brs8:
+  host: brs8
+  user: root
+  passwd: 123456
+brs82:
+  host: brs82
+  user: root
+  passwd: 123456
+brs98:
+  host: brs98
+  user: root
+  passwd: 123456
+brs159:
+  host: brs159
+  user: root
+  passwd: 123456
