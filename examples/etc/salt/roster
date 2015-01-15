@@ -2,7 +2,7 @@ brs17:
   host: brs17
   user: root
   passwd: 123456
-ceph10:
-  host: ceph10
+ceph46:
+  host: ceph46
   user: root
   passwd: 123456
