@@ -11,8 +11,8 @@ ceph:
       authentication_type: cephx
       public_network: 10.118.202.0/24
       cluster_network: 10.118.202.0/24
-      mon_initial_members: brs8,
-      mon_host: 10.118.202.8:6789,
+      mon_initial_members: brs17,
+      mon_host: 10.118.202.17:6789,
     mon:
     osd:
       osd_pool_default_pg_num: 200
