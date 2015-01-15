@@ -11,6 +11,8 @@ ceph.osd.setup:
     - tgt_type: list
     - sls:
       - ceph.osd
+    - require:
+      - salt: ceph.mon.setup
 
 ceph.client.setup:
   salt.state:
@@ -18,3 +20,5 @@ ceph.client.setup:
     - tgt_type: list
     - sls:
       - ceph.client
+    - require:
+      - salt: ceph.osd.setup

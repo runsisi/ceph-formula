@@ -29,6 +29,12 @@ ceph:
         gpgcheck: 1
         gpgkey: http://mirrors.ustc.edu.cn/centos/RPM-GPG-KEY-CentOS-{{ salt['grains.get']('osmajorrelease')[0] }}
 
+      - name: extras
+        humanname: extras
+        baseurl: http://mirrors.ustc.edu.cn/centos/{{ salt['grains.get']('osmajorrelease')[0] }}/extras/$basearch
+        gpgcheck: 1
+        gpgkey: http://mirrors.ustc.edu.cn/centos/RPM-GPG-KEY-CentOS-{{ salt['grains.get']('osmajorrelease')[0] }}
+
       - name: epel
         humanname: epel
         baseurl: http://mirrors.ustc.edu.cn/epel/{{ salt['grains.get']('osmajorrelease')[0] }}/$basearch
