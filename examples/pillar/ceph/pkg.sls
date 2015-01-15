@@ -25,13 +25,13 @@ ceph:
 
       - name: base
         humanname: base
-        baseurl: http://mirrors.sohu.com/centos/{{ salt['grains.get']('osmajorrelease')[0] }}/os/$basearch
+        baseurl: http://mirrors.ustc.edu.cn/centos/{{ salt['grains.get']('osmajorrelease')[0] }}/os/$basearch
         gpgcheck: 1
-        gpgkey: http://mirrors.sohu.com/centos/RPM-GPG-KEY-CentOS-{{ salt['grains.get']('osmajorrelease')[0] }}
+        gpgkey: http://mirrors.ustc.edu.cn/centos/RPM-GPG-KEY-CentOS-{{ salt['grains.get']('osmajorrelease')[0] }}
 
       - name: epel
         humanname: epel
-        baseurl: http://mirrors.sohu.com/fedora-epel/{{ salt['grains.get']('osmajorrelease')[0] }}/$basearch
+        baseurl: http://mirrors.ustc.edu.cn/epel/{{ salt['grains.get']('osmajorrelease')[0] }}/$basearch
         gpgcheck: 1
-        gpgkey: http://mirrors.sohu.com/fedora-epel/RPM-GPG-KEY-EPEL-{{ salt['grains.get']('osmajorrelease')[0] }}
+        gpgkey: http://mirrors.ustc.edu.cn/epel/RPM-GPG-KEY-EPEL-{{ salt['grains.get']('osmajorrelease')[0] }}
 {% endif %}
