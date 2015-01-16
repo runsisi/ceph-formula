@@ -1,5 +1,5 @@
-{% from "ceph/lookup.jinja" import conf with context %}
-{% from "ceph/lookup.jinja" import mon with context %}
+{% from 'ceph/lookup.jinja' import conf with context %}
+{% from 'ceph/lookup.jinja' import mon with context %}
 
 include:
   - ceph.conf

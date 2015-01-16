@@ -1,4 +1,4 @@
-{% from "ceph/lookup.jinja" import pkg with context %}
+{% from 'ceph/lookup.jinja' import pkg with context %}
 
 ceph.pkg.install:
   pkg.installed:
