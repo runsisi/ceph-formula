@@ -42,10 +42,10 @@ ceph.osd.{{ data }}.prepare:
       - file: ceph.osd.{{ data }}.prepare
 
 ceph.osd.{{ data }}.activate:
-  cmd.wait:
+  cmd.run:
     - name: >
         ceph-disk activate {{ data }}
-    - unless: ! test -b {{ data }}
-    - watch:
+    - unless: test -b {{ data }}
+    - require:
       - cmd: ceph.osd.{{ data }}.prepare
 {% endfor %}

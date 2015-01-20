@@ -4,7 +4,7 @@
 
 {% set pkg = salt['grains.filter_by']({
     'Debian': {
-        'pkgs': ['ceph',],
+        'pkgs': {'ceph': '',},
         'manage_repo': True,
         'repos': [
             {'name': 'deb http://ceph.com/debian-giant ' + salt['grains.get']('oscodename') + ' main',
@@ -16,7 +16,7 @@
         ],
     },
     'Deepin': {
-        'pkgs': ['ceph',],
+        'pkgs': {'ceph': '',},
         'manage_repo': True,
         'repos': [
             {'name': 'deb http://ceph.com/debian-giant ' + salt['grains.get']('oscodename') + ' main',
@@ -28,7 +28,7 @@
         ],
     },
     'RedHat': {
-        'pkgs': ['ceph',],
+        'pkgs': {'ceph': '0.87-0.el7',},
         'manage_repo': True,
         'repos': [
             {'name': 'ceph',

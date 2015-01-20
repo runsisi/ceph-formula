@@ -1,11 +1,11 @@
 {% from 'ceph/lookup.jinja' import pkg with context %}
 
-ceph.pkg.install:
+{% for pkg, version in pkg.pkgs.iteritems() %}
+ceph.pkg.{{ pkg }}.install:
   pkg.installed:
-    - names:
-    {% for pkg in pkg.pkgs %}
-      - {{ pkg }}
-    {% endfor %}
+    - name: {{ pkg }}
+    - version: {{ version }}
+{% endfor %}
 
 {% if pkg.manage_repo %}
 {% for repo in pkg.repos %}
@@ -27,6 +27,8 @@ ceph.repo.{{ repo.humanname }}.setup:
     {% endif %}
 {% endif %}
     - require_in:
-      - pkg: ceph.pkg.install
+      {% for pkg, version in pkg.pkgs.iteritems() %}
+      - pkg: ceph.pkg.{{ pkg }}.install
+      {% endfor %}
 {% endfor %}
 {% endif %}
