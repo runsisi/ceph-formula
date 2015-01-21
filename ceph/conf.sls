@@ -1,5 +1,5 @@
+{% from 'ceph/lookup.jinja' import base with context %}
 {% from 'ceph/lookup.jinja' import conf with context %}
-{% from 'ceph/lookup.jinja' import pkg with context %}
 
 include:
   - ceph.pkg
@@ -12,8 +12,8 @@ ceph.conf.setup:
     - group: root
     - mode: 644
     - require:
-      {% for pkg, version in pkg.pkgs.iteritems() %}
-      - pkg: ceph.pkg.{{ pkg }}.install
+      {% for pkg, ver in base.pkgs.iteritems() %}
+      - pkg: ceph.pkg.{{ pkg }}.{{ ver }}.install
       {% endfor %}
   ini.sections_present:
     - name: /etc/ceph/{{ conf.cluster }}.conf

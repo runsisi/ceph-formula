@@ -1,8 +1,6 @@
 ceph:
   osd:
     osds:
-      - data: /ceph1
-        journal: /tmp/journal1
-      - data: /ceph2
-      - data: /ceph3
-        journal: /tmp/journal3
+      - data: /cephp1
+        journal: /tmp/cephp1-journal
+      - data: /cephp2

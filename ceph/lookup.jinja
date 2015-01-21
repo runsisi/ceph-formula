@@ -2,62 +2,55 @@
 # does not support 'default' and 'base' keyword parameters, so do not
 # use this formula under salt-ssh unless you change the code accordingly.
 
-{% set pkg = salt['grains.filter_by']({
-    'Debian': {
-        'pkgs': {'ceph': '',},
-        'manage_repo': True,
-        'repos': [
-            {'name': 'deb http://ceph.com/debian-giant ' + salt['grains.get']('oscodename') + ' main',
-             'humanname': 'ceph',
-             'dist': salt['grains.get']('oscodename'),
-             'file': '/etc/apt/sources.list.d/ceph.list',
-             'key_url': 'https://ceph.com/git/?p=ceph.git;a=blob_plain;f=keys/release.asc',
-            },
-        ],
-    },
-    'Deepin': {
-        'pkgs': {'ceph': '',},
-        'manage_repo': True,
-        'repos': [
-            {'name': 'deb http://ceph.com/debian-giant ' + salt['grains.get']('oscodename') + ' main',
-             'humanname': 'ceph',
-             'dist': salt['grains.get']('oscodename'),
-             'file': '/etc/apt/sources.list.d/ceph.list',
-             'key_url': 'https://ceph.com/git/?p=ceph.git;a=blob_plain;f=keys/release.asc',
-            },
-        ],
-    },
-    'RedHat': {
-        'pkgs': {'ceph': '0.87-0.el7',},
-        'manage_repo': True,
-        'repos': [
-            {'name': 'ceph',
-             'humanname': 'ceph',
-             'baseurl': 'http://ceph.com/rpm-giant/el' + salt['grains.get']('osmajorrelease', ['6'])[0] + '/$basearch',
-             'gpgcheck': '1',
-             'gpgkey': 'https://ceph.com/git/?p=ceph.git;a=blob_plain;f=keys/release.asc',
-            },
-            {'name': 'base',
-             'humanname': 'base',
-             'baseurl': 'http://mirrors.ustc.edu.cn/centos/' + salt['grains.get']('osmajorrelease', ['6'])[0] + '/os/$basearch',
-             'gpgcheck': '1',
-             'gpgkey': 'http://mirrors.ustc.edu.cn/centos/RPM-GPG-KEY-CentOS-' + salt['grains.get']('osmajorrelease', ['6'])[0],
-            },
-            {'name': 'extras',
-             'humanname': 'extras',
-             'baseurl': 'http://mirrors.ustc.edu.cn/centos/' + salt['grains.get']('osmajorrelease', ['6'])[0] + '/extras/$basearch',
-             'gpgcheck': '1',
-             'gpgkey': 'http://mirrors.ustc.edu.cn/centos/RPM-GPG-KEY-CentOS-' + salt['grains.get']('osmajorrelease', ['6'])[0],
-            },
-            {'name': 'epel',
-             'humanname': 'epel',
-             'baseurl': 'http://mirrors.ustc.edu.cn/epel/' + salt['grains.get']('osmajorrelease', ['6'])[0] + '/$basearch',
-             'gpgcheck': '1',
-             'gpgkey': 'http://mirrors.ustc.edu.cn/epel/RPM-GPG-KEY-EPEL-' + salt['grains.get']('osmajorrelease', ['6'])[0],
-            },
-        ],
-    },
-}, grain = 'os_family', merge = salt['pillar.get']('ceph:pkg')) %}
+{% if grains['os_family'] in ['Debian', 'Deepin'] %}
+{% set base = {
+    'pkgs': {'ceph': '0.87-1' + grains['oscodename'],},
+    'manage_repo': 1,
+    'repos': [
+        {'name': 'deb http://ceph.com/debian-giant ' + grains['oscodename'] + ' main',
+         'humanname': 'ceph',
+         'dist': grains['oscodename'],
+         'file': '/etc/apt/sources.list.d/ceph.list',
+         'key_url': 'https://ceph.com/git/?p=ceph.git;a=blob_plain;f=keys/release.asc',
+        },
+    ],
+} %}
+{% elif grains['os_family'] in ['RedHat'] %}
+{% set base = {
+    'pkgs': {'ceph': '0.87-0.el' + grains['osmajorrelease'],},
+    'manage_repo': 1,
+    'repos': [
+        {'name': 'ceph',
+         'humanname': 'ceph',
+         'baseurl': 'http://ceph.com/rpm-giant/el' + grains['osmajorrelease'] + '/$basearch',
+         'gpgcheck': '1',
+         'gpgkey': 'https://ceph.com/git/?p=ceph.git;a=blob_plain;f=keys/release.asc',
+        },
+        {'name': 'base',
+         'humanname': 'base',
+         'baseurl': 'http://mirrors.ustc.edu.cn/centos/' + grains['osmajorrelease'] + '/os/$basearch',
+         'gpgcheck': '1',
+         'gpgkey': 'http://mirrors.ustc.edu.cn/centos/RPM-GPG-KEY-CentOS-' + grains['osmajorrelease'],
+        },
+        {'name': 'extras',
+         'humanname': 'extras',
+         'baseurl': 'http://mirrors.ustc.edu.cn/centos/' + grains['osmajorrelease'] + '/extras/$basearch',
+         'gpgcheck': '1',
+         'gpgkey': 'http://mirrors.ustc.edu.cn/centos/RPM-GPG-KEY-CentOS-' + grains['osmajorrelease'],
+        },
+        {'name': 'epel',
+         'humanname': 'epel',
+         'baseurl': 'http://mirrors.ustc.edu.cn/epel/' + grains['osmajorrelease'] + '/$basearch',
+         'gpgcheck': '1',
+         'gpgkey': 'http://mirrors.ustc.edu.cn/epel/RPM-GPG-KEY-EPEL-' + grains['osmajorrelease'],
+        },
+    ],
+} %}
+{% endif %}
+
+{% set base = salt['grains.filter_by']({
+    'default': base,
+}, merge = salt['pillar.get']('ceph:base')) %}
 
 {% set conf = salt['grains.filter_by']({
     'default': {
@@ -70,10 +63,10 @@
         'global': {
             'fsid': '08a80810-eff9-4982-8cf3-37aded9e1802',
             'authentication_type': 'cephx',
-            'public_network': '10.118.202.0/24',
-            'cluster_network': '192.168.202.0/24',
-            'mon_initial_members': 'brs17,',
-            'mon_host': '10.118.202.17:6789, 10.118.202.182:6789',
+            'public_network': '10.118.4.0/24',
+            'cluster_network': '10.118.4.0/24',
+            'mon_initial_members': 'runsisi-hust,',
+            'mon_host': '10.118.4.36:6789',
         },
     },
 }, merge = salt['pillar.get']('ceph:conf')) %}
@@ -85,8 +78,8 @@
 {% set osd = salt['grains.filter_by']({
     'default': {
         'osds': [
-            {'data': '/ceph-xxx',},
-            {'data': '/ceph-yyy', 'jounal': '/tmp/ceph-yyy-jounal'},
+            {'data': '/cephd1',},
+            {'data': '/cephd2', 'jounal': '/tmp/cephd2-jounal'},
         ],
     },
 }, grain = 'host', merge = salt['pillar.get']('ceph:osd')) %}

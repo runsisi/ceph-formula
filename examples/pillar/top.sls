@@ -1,6 +1,6 @@
 base:
   '*':
-    - ceph.pkg
+    - ceph.base
     - ceph.conf
   'brs17,brs182':
     - match: list
