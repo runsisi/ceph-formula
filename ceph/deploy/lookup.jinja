@@ -1,0 +1,97 @@
+# As of release 2014.7.0, the grains.filter_by interface in salt-ssh
+# does not support 'default' and 'base' keyword parameters, so do not
+# use this formula under salt-ssh unless you change the code accordingly.
+
+{% set ceph = {
+    'base': {},
+    'conf': {},
+    'mon': {},
+    'osd': {}
+} %}
+
+{% if grains['os_family'] in ['Debian', 'Deepin'] %}
+{% do ceph.update({
+    'base': {
+        'pkgs': {'ceph': '0.87-1' + grains['oscodename'],},
+        'manage_repo': 1,
+        'repos': [
+            {'name': 'deb http://ceph.com/debian-giant ' + grains['oscodename'] + ' main',
+             'humanname': 'ceph',
+             'dist': grains['oscodename'],
+             'file': '/etc/apt/sources.list.d/ceph.list',
+             'key_url': 'https://ceph.com/git/?p=ceph.git;a=blob_plain;f=keys/release.asc',
+            },
+        ],
+    }
+}) %}
+{% elif grains['os_family'] in ['RedHat'] %}
+{% do ceph.update({
+    'base': {
+        'pkgs': {'ceph': '0.87-0.el' + grains['osmajorrelease'],},
+        'manage_repo': 1,
+        'repos': [
+            {'name': 'ceph',
+             'humanname': 'ceph',
+             'baseurl': 'http://ceph.com/rpm-giant/el' + grains['osmajorrelease'] + '/$basearch',
+             'gpgcheck': '1',
+             'gpgkey': 'https://ceph.com/git/?p=ceph.git;a=blob_plain;f=keys/release.asc',
+            },
+            {'name': 'base',
+             'humanname': 'base',
+             'baseurl': 'http://mirrors.ustc.edu.cn/centos/' + grains['osmajorrelease'] + '/os/$basearch',
+             'gpgcheck': '1',
+             'gpgkey': 'http://mirrors.ustc.edu.cn/centos/RPM-GPG-KEY-CentOS-' + grains['osmajorrelease'],
+            },
+            {'name': 'extras',
+             'humanname': 'extras',
+             'baseurl': 'http://mirrors.ustc.edu.cn/centos/' + grains['osmajorrelease'] + '/extras/$basearch',
+             'gpgcheck': '1',
+             'gpgkey': 'http://mirrors.ustc.edu.cn/centos/RPM-GPG-KEY-CentOS-' + grains['osmajorrelease'],
+            },
+            {'name': 'epel',
+             'humanname': 'epel',
+             'baseurl': 'http://mirrors.ustc.edu.cn/epel/' + grains['osmajorrelease'] + '/$basearch',
+             'gpgcheck': '1',
+             'gpgkey': 'http://mirrors.ustc.edu.cn/epel/RPM-GPG-KEY-EPEL-' + grains['osmajorrelease'],
+            },
+        ],
+    }
+}) %}
+{% endif %}
+
+{% do ceph.update({
+    'conf': {
+        'cluster': 'ceph',
+        'mon_key': 'AQATGHJTUCBqIBAA7M2yafV1xctn1pgr3GcKPg==',
+        'admin_key': 'AQBMGHJTkC8HKhAAJ7NH255wYypgm1oVuV41MA==',
+        'bootstrap_osd_key': 'AQARG3JTsDDEHhAAVinHPiqvJkUi5Mww/URupw==',
+        'bootstrap_mds_key': 'AQCztJdSyNb0NBAASA2yPZPuwXeIQnDJ9O8gVw==',
+
+        'global': {
+            'fsid': '850007de-f635-46e4-b490-ac7128c784e6',
+            'auth_type': 'cephx',
+            'public_network': '10.118.4.0/24',
+            'cluster_network': '10.118.4.0/24',
+            'mon_initial_members': 'runsisi-hust,',
+            'mon_host': '10.118.4.36:6789',
+        },
+        'mon': {
+        },
+        'osd': {
+        }
+    },
+    'mon': {
+        'mon_id': grains['host'],
+    },
+    'osd': {
+        'osds': [
+            {'data': '/ceph-d1', 'journal': '/tmp/ceph-jounal-d1'},
+            {'data': '/ceph-d2',},
+        ],
+    }
+}) %}
+
+{% do salt['grains.filter_by'](
+    {'default': ceph},
+    merge = salt['pillar.get']('ceph')
+) %}

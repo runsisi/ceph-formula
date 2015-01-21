@@ -1,7 +1,11 @@
-{% from 'ceph/lookup.jinja' import base with context %}
+{% from 'ceph/deploy/lookup.jinja' import ceph with context %}
 
-{% if base.manage_repo %}
-{% for repo in base.repos %}
+{% set manage_repo = ceph.base.manage_repo | default(0) %}
+{% set repos = ceph.base.repos | default({}) %}
+
+{% if manage_repo %}
+{% for repo in repos %}
+
 ceph.repo.{{ repo.humanname }}.setup:
   pkgrepo.managed:
 {% if grains['os_family'] in ['Debian', 'Deepin'] %}
@@ -19,5 +23,6 @@ ceph.repo.{{ repo.humanname }}.setup:
     - gpgkey: {{ repo.gpgkey }}
     {% endif %}
 {% endif %}
+
 {% endfor %}
 {% endif %}

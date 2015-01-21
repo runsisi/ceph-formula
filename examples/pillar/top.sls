@@ -1,8 +1,8 @@
 base:
   '*':
-    - ceph.base
-    - ceph.conf
+    - ceph.deploy.base
+    - ceph.deploy.conf
   'brs17,brs182':
     - match: list
-    - ceph.mon
-    - ceph.osd
+    - ceph.deploy.mon
+    - ceph.deploy.osd
