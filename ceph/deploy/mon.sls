@@ -1,13 +1,12 @@
 {% from 'ceph/deploy/lookup.jinja' import ceph with context %}
 
-{% set cluster = ceph.conf.cluster | default('') | trim | default('ceph', True) %}
-{% set mon_key = ceph.conf.mon_key %}
-{% set admin_key = ceph.conf.admin_key %}
-{% set bootstrap_osd_key = ceph.conf.bootstrap_osd_key %}
-{% set bootstrap_mds_key = ceph.conf.bootstrap_mds_key %}
-{% set auth_type = ceph.conf.global.auth_type | default('') | trim | default('cephx', True) %}
-{% set auth_type = 'cephx' if auth_type != 'none' else 'none' %}
-{% set mon_id = ceph.mon.mon_id %}
+{% set cluster = ceph.cluster | default('') | trim | default('ceph', True) %}
+{% set mon_key = ceph.mon_key %}
+{% set admin_key = ceph.admin_key %}
+{% set bootstrap_osd_key = ceph.bootstrap_osd_key %}
+{% set bootstrap_mds_key = ceph.bootstrap_mds_key %}
+{% set auth_type = ceph.auth_type | default('') | trim | default('cephx', True) %}
+{% set mon_id = ceph.mon.mon_id | default(grains['host']) %}
 {% set mon_data = ceph.conf.mon.mon_data | default('') | trim | default('/var/lib/ceph/mon/$cluster-$id', True) %}
 {% set mon_data = mon_data
     | replace('$name', '$type.$id')
@@ -22,7 +21,7 @@
 include:
   - ceph.deploy.conf
 
-{% if auth_type == 'cephx' %}
+{% if auth_type != 'none' %}
 ceph.mon.tmp.keyring.create:
   file.managed:
     - name: /tmp/{{ cluster }}.mon.tmp.keyring
@@ -101,7 +100,7 @@ ceph.mon.start:
     - require:
       - file: ceph.mon.dummy.files.touch
 
-{% if auth_type == 'cephx' %}
+{% if auth_type != 'none' %}
 ceph.mon.keyring.create:
   file.managed:
     - name: {{ mon_data }}/keyring
