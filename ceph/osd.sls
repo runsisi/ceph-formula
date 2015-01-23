@@ -1,11 +1,11 @@
-{% from 'ceph/deploy/lookup.jinja' import ceph with context %}
+{% from 'ceph/lookup.jinja' import ceph with context %}
 
 {% set cluster = ceph.cluster | default('') | trim | default('ceph', True) %}
 {% set bootstrap_osd_key = ceph.bootstrap_osd_key %}
 {% set osds = ceph.osd.osds | default({}) %}
 
 include:
-  - ceph.deploy.conf
+  - ceph.conf
 
 ceph.osd.keyring.create:
   file.managed:

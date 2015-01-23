@@ -19,7 +19,6 @@ ceph:
       osd_crush_chooseleaf_type: 0
     mons:
       - id: brs17
-        host: brs17
         addr: 10.118.202.17
       - id: brs182
         host: brs182

@@ -1,4 +1,4 @@
-{% from 'ceph/deploy/lookup.jinja' import ceph with context %}
+{% from 'ceph/lookup.jinja' import ceph with context %}
 
 {% set manage_repo = ceph.base.manage_repo | default(0) %}
 {% set repos = ceph.base.repos | default({}) %}

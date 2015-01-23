@@ -1,4 +1,4 @@
-{% from 'ceph/deploy/lookup.jinja' import ceph with context %}
+{% from 'ceph/lookup.jinja' import ceph with context %}
 
 {% set pkgs = ceph.base.pkgs | default({}) %}
 {% set cluster = ceph.cluster | default('') | trim | default('ceph', True) %}
@@ -11,12 +11,12 @@
 {% endif %}
 
 include:
-  - ceph.deploy.pkg
+  - ceph.pkg
 
 ceph.conf.setup:
   file.managed:
     - name: /etc/ceph/{{ cluster }}.conf
-    - source: salt://ceph/deploy/files/ceph.conf
+    - source: salt://ceph/files/ceph.conf
     - template: jinja
     - makedirs: True
     - user: root

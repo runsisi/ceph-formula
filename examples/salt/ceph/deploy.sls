@@ -3,14 +3,14 @@ ceph.mon.setup:
     - tgt: 'brs17,brs182'
     - tgt_type: list
     - sls:
-      - ceph.deploy.mon
+      - ceph.mon
 
 ceph.osd.setup:
   salt.state:
     - tgt: 'brs17,brs182'
     - tgt_type: list
     - sls:
-      - ceph.deploy.osd
+      - ceph.osd
     - require:
       - salt: ceph.mon.setup
 
@@ -19,6 +19,6 @@ ceph.client.setup:
     - tgt: 'brs17'
     - tgt_type: list
     - sls:
-      - ceph.deploy.client
+      - ceph.client
     - require:
       - salt: ceph.osd.setup

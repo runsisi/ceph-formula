@@ -1,11 +1,11 @@
-{% from 'ceph/deploy/lookup.jinja' import ceph with context %}
+{% from 'ceph/lookup.jinja' import ceph with context %}
 
 {% set manage_repo = ceph.base.manage_repo | default(0) %}
 {% set pkgs = ceph.base.pkgs | default({}) %}
 
 {% if manage_repo %}
 include:
-  - ceph.deploy.repo
+  - ceph.repo
 {% endif %}
 
 {% for pkg, ver in pkgs.iteritems() %}

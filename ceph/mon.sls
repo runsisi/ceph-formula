@@ -1,4 +1,4 @@
-{% from 'ceph/deploy/lookup.jinja' import ceph with context %}
+{% from 'ceph/lookup.jinja' import ceph with context %}
 
 {% set cluster = ceph.cluster | default('') | trim | default('ceph', True) %}
 {% set mon_key = ceph.mon_key %}
@@ -19,7 +19,7 @@
 {% set public_addr_option = '--public_addr ' + public_addr if public_addr else '' %}
 
 include:
-  - ceph.deploy.conf
+  - ceph.conf
 
 {% if auth_type != 'none' %}
 ceph.mon.tmp.keyring.create:
