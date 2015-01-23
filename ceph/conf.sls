@@ -19,6 +19,8 @@ ceph.conf.setup:
     - name: /etc/ceph/{{ cluster }}.conf
     - source: salt://ceph/files/ceph.conf
     - template: jinja
+    - context:
+        ceph: {{ ceph }}
     - makedirs: True
     - user: root
     - group: root
@@ -27,5 +29,3 @@ ceph.conf.setup:
       {% for pkg, ver in pkgs.iteritems() %}
       - pkg: ceph.pkg.{{ pkg }}.{{ ver }}.install
       {% endfor %}
-    - context:
-        ceph: {{ ceph }}
