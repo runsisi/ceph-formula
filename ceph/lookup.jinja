@@ -69,16 +69,14 @@
         'global': {
             'fsid': '850007de-f635-46e4-b490-ac7128c784e6',
             'auth_type': 'cephx',
-            'public_network': '10.118.4.0/24',
-            'cluster_network': '10.118.4.0/24',
-            'mon_initial_members': 'runsisi-hust,',
+            'mon_initial_members': grains['host'],
         },
         'mon': {
         },
         'osd': {
         },
         'mons': [
-            {'id': 'runsisi-hust', 'host': 'runsisi-hust', 'addr': '10.118.4.36:6789'},
+            {'id': grains['host'], 'addr': grains['ipv4'][0] + ':6789'},
         ],
     },
     'osd': {

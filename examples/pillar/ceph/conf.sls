@@ -12,14 +12,9 @@ ceph:
       osd_pool_default_size: 2
       osd_pool_default_min_size: 1
       osd_crush_chooseleaf_type: 0
-      public_network: 10.118.202.0/24
-      cluster_network: 10.118.202.0/24
-      mon_initial_members: brs17,
+      mon_initial_members: {{ grains['host'] }},
     mon: {}
     osd: {}
     mons:
-      - id: brs17
-        addr: 10.118.202.17
-      - id: brs182
-        host: brs182
-        addr: 10.118.202.182
+      - id: {{ grains['host'] }}
+        addr: {{ grains['ipv4'][0] + ':6789' }}
