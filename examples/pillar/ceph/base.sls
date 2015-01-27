@@ -1,8 +1,6 @@
-{% if salt['grains.get']('os_family') in ['Debian', 'Deepin'] %}
+{% if salt['grains.get']('os_family') in ['Debian',] %}
 ceph:
-  base:
-    pkgs:
-      ceph: 0.87-1{{ grains['oscodename'] }}
+  repo:
     manage_repo: 1
     repos:
       - name: deb http://ceph.com/debian-giant {{ salt['grains.get']('oscodename') }} main
@@ -10,11 +8,13 @@ ceph:
         dist: {{ salt['grains.get']('oscodename') }}
         file: /etc/apt/sources.list.d/ceph.list
         key_url: https://ceph.com/git/?p=ceph.git;a=blob_plain;f=keys/release.asc
+  pkg:
+    pkgs:
+      ceph: 0.87-1{{ grains['oscodename'] }}
+    manage_repo: 1
 {% elif salt['grains.get']('os_family') in ['RedHat'] %}
 ceph:
-  base:
-    pkgs:
-      ceph: 0.87-0.el{{ grains['osmajorrelease'] }}
+  repo:
     manage_repo: 1
     repos:
       - name: ceph
@@ -22,22 +22,7 @@ ceph:
         baseurl: http://ceph.com/rpm-giant/el{{ grains['osmajorrelease'] }}/$basearch
         gpgcheck: 1
         gpgkey: https://ceph.com/git/?p=ceph.git;a=blob_plain;f=keys/release.asc
-
-      - name: base
-        humanname: base
-        baseurl: http://mirrors.ustc.edu.cn/centos/{{ grains['osmajorrelease'] }}/os/$basearch
-        gpgcheck: 1
-        gpgkey: http://mirrors.ustc.edu.cn/centos/RPM-GPG-KEY-CentOS-{{ grains['osmajorrelease'] }}
-
-      - name: extras
-        humanname: extras
-        baseurl: http://mirrors.ustc.edu.cn/centos/{{ grains['osmajorrelease'] }}/extras/$basearch
-        gpgcheck: 1
-        gpgkey: http://mirrors.ustc.edu.cn/centos/RPM-GPG-KEY-CentOS-{{ grains['osmajorrelease'] }}
-
-      - name: epel
-        humanname: epel
-        baseurl: http://mirrors.ustc.edu.cn/epel/{{ grains['osmajorrelease'] }}/$basearch
-        gpgcheck: 1
-        gpgkey: http://mirrors.ustc.edu.cn/epel/RPM-GPG-KEY-EPEL-{{ grains['osmajorrelease'] }}
+  pkg:
+    pkgs:
+      ceph: 0.87-0.el{{ grains['osmajorrelease'] }}
 {% endif %}

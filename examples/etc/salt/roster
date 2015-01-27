@@ -1,0 +1,16 @@
+ceph10:
+  host: ceph10
+  user: root
+  passwd: 123456
+ceph46:
+  host: ceph46
+  user: root
+  passwd: 123456
+ceph239:
+  host: ceph239
+  user: root
+  passwd: 123456
+brs182:
+  host: brs182
+  user: root
+  passwd: 123456

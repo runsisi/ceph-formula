@@ -1,7 +1,8 @@
 {% from 'ceph/lookup.jinja' import ceph with context %}
 
-{% set manage_repo = ceph.base.manage_repo | default(0) %}
-{% set pkgs = ceph.base.pkgs | default({}) %}
+{% set manage_repo = ceph.repo.manage_repo | default(0) %}
+{% set repos = ceph.repo.repos | default({}) %}
+{% set pkgs = ceph.pkg.pkgs | default({}) %}
 
 {% if manage_repo %}
 include:
@@ -14,9 +15,9 @@ ceph.pkg.{{ pkg }}.{{ ver }}.install:
   pkg.installed:
     - name: {{ pkg }}
     - version: {{ ver }}
-    {% if ceph.base.manage_repo %}
+    {% if manage_repo %}
     - require:
-      {% for repo in ceph.base.repos %}
+      {% for repo in repos %}
       - pkgrepo: ceph.repo.{{ repo.humanname }}.setup
       {% endfor %}
     {% endif %}

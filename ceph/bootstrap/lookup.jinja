@@ -1,0 +1,105 @@
+{% set bootstrap = {
+    'salt': {},
+    'repo': {},
+    'ntp': {},
+} %}
+
+{% do bootstrap.salt.update({
+    'minion': {
+        'pkgs': {},
+        'master_resolv': 1,
+        'master_ip': '10.118.4.36',
+    },
+}) %}
+
+{% if grains['os_family'] in ['Debian',] %}
+{% do bootstrap.salt.minion.pkgs.update({
+    'salt-minion': '2014.7.0+ds-2' + grains['oscodename'] + '1',
+}) %}
+{% elif grains['os_family'] in ['RedHat'] %}
+{% do bootstrap.salt.minion.pkgs.update({
+    'salt-minion': '2014.7.0-3.el' + grains['osmajorrelease'],
+}) %}
+{% endif %}
+
+{% if grains['os_family'] in ['Debian',] %}
+{% do bootstrap.repo.update({
+    'cleanup': 0,
+    'repos': [
+        {'name': 'deb http://mirrors.ustc.edu.cn/ubuntu ' + grains['oscodename'] + ' main restricted universe multiverse',
+         'humanname': 'base',
+         'dist': grains['oscodename'],
+         'file': '/etc/apt/sources.list',
+        },
+        {'name': 'deb http://mirrors.ustc.edu.cn/ubuntu ' + grains['oscodename'] + '-updates main restricted universe multiverse',
+         'humanname': 'updates',
+         'dist': grains['oscodename'] + '-updates',
+         'file': '/etc/apt/sources.list',
+        },
+        {'name': 'deb http://mirrors.ustc.edu.cn/ubuntu ' + grains['oscodename'] + '-security main restricted universe multiverse',
+         'humanname': 'security',
+         'dist': grains['oscodename'] + '-security',
+         'file': '/etc/apt/sources.list',
+        },
+        {'name': 'salt',
+         'humanname': 'salt',
+         'dist': grains['oscodename'],
+         'file': '/etc/apt/sources.list.d/saltstack-salt.list',
+         'ppa': 'saltstack/salt',
+        },
+    ],
+}) %}
+{% elif grains['os_family'] in ['RedHat'] %}
+{% do bootstrap.repo.update({
+    'cleanup': 0,
+    'repos': [
+        {'name': 'base',
+         'humanname': 'base',
+         'baseurl': 'http://mirrors.ustc.edu.cn/centos/' + grains['osmajorrelease'] + '/os/$basearch',
+         'gpgcheck': '1',
+         'gpgkey': 'http://mirrors.ustc.edu.cn/centos/RPM-GPG-KEY-CentOS-' + grains['osmajorrelease'],
+        },
+        {'name': 'extras',
+         'humanname': 'extras',
+         'baseurl': 'http://mirrors.ustc.edu.cn/centos/' + grains['osmajorrelease'] + '/extras/$basearch',
+         'gpgcheck': '1',
+         'gpgkey': 'http://mirrors.ustc.edu.cn/centos/RPM-GPG-KEY-CentOS-' + grains['osmajorrelease'],
+        },
+        {'name': 'epel',
+         'humanname': 'epel',
+         'baseurl': 'http://mirrors.ustc.edu.cn/epel/' + grains['osmajorrelease'] + '/$basearch',
+         'gpgcheck': '1',
+         'gpgkey': 'http://mirrors.ustc.edu.cn/epel/RPM-GPG-KEY-EPEL-' + grains['osmajorrelease'],
+        },
+    ],
+}) %}
+{% endif %}
+
+{% if grains['os_family'] in ['Debian',] %}
+{% do bootstrap.ntp.update({
+    'pkg': 'ntp',
+    'svc': 'ntp',
+    'cfile': '/etc/ntp.conf',
+    'srvs': ['0.ubuntu.pool.ntp.org', '1.ubuntu.pool.ntp.org',
+        '2.ubuntu.pool.ntp.org', '3.ubuntu.pool.ntp.org',],
+    'peers': [grains['ipv4'][0],],
+}) %}
+{% elif grains['os_family'] in ['RedHat'] %}
+{% do bootstrap.ntp.update({
+    'pkg': 'ntp',
+    'svc': 'ntpd',
+    'cfile': '/etc/ntp.conf',
+    'srvs': ['0.centos.pool.ntp.org', '1.centos.pool.ntp.org',
+        '2.centos.pool.ntp.org', '3.centos.pool.ntp.org',],
+    'peers': [grains['ipv4'][0],],
+}) %}
+{% endif %}
+
+{% if 0 %}
+{% do salt['grains.filter_by'](
+    {'default': bootstrap},
+    merge = salt['pillar.get']('ceph:bootstrap', {})
+) %}
+{% else %}
+{% do bootstrap.update(salt['pillar.get']('ceph:bootstrap', {})) %}
+{% endif %}

@@ -1,14 +1,14 @@
 {% from 'ceph/lookup.jinja' import ceph with context %}
 
-{% set manage_repo = ceph.base.manage_repo | default(0) %}
-{% set repos = ceph.base.repos | default({}) %}
+{% set manage_repo = ceph.repo.manage_repo | default(0) %}
+{% set repos = ceph.repo.repos | default({}) %}
 
 {% if manage_repo %}
 {% for repo in repos %}
 
 ceph.repo.{{ repo.humanname }}.setup:
   pkgrepo.managed:
-{% if grains['os_family'] in ['Debian', 'Deepin'] %}
+{% if grains['os_family'] in ['Debian',] %}
     - name: {{ repo.name }}
     - humanname: {{ repo.humanname }}
     - dist: {{ repo.dist }}

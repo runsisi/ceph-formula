@@ -8,39 +8,16 @@
     'admin_key': 'AQBMGHJTkC8HKhAAJ7NH255wYypgm1oVuV41MA==',
     'bootstrap_osd_key': 'AQARG3JTsDDEHhAAVinHPiqvJkUi5Mww/URupw==',
     'bootstrap_mds_key': 'AQCztJdSyNb0NBAASA2yPZPuwXeIQnDJ9O8gVw==',
-    'ntp': {},
-    'base': {},
+    'repo': {},
+    'pkg': {},
     'conf': {},
     'mon': {},
     'osd': {}
 } %}
 
-{% if grains['os_family'] in ['Debian', 'Deepin'] %}
+{% if grains['os_family'] in ['Debian',] %}
 {% do ceph.update({
-    'ntp': {
-        'pkg': 'ntp',
-        'svc': 'ntp',
-        'conf': '/etc/ntp.conf',
-        'srvs': ['0.ubuntu.pool.ntp.org', '1.ubuntu.pool.ntp.org',
-            '2.ubuntu.pool.ntp.org', '3.ubuntu.pool.ntp.org',],
-    }
-}) %}
-{% elif grains['os_family'] in ['RedHat'] %}
-{% do ceph.update({
-    'ntp': {
-        'pkg': 'ntp',
-        'svc': 'ntpd',
-        'conf': '/etc/ntp.conf',
-        'srvs': ['0.centos.pool.ntp.org', '1.centos.pool.ntp.org',
-            '2.centos.pool.ntp.org', '3.centos.pool.ntp.org',],
-    }
-}) %}
-{% endif %}
-
-{% if grains['os_family'] in ['Debian', 'Deepin'] %}
-{% do ceph.update({
-    'base': {
-        'pkgs': {'ceph': '0.87-1' + grains['oscodename'],},
+    'repo': {
         'manage_repo': 1,
         'repos': [
             {'name': 'deb http://ceph.com/debian-giant ' + grains['oscodename'] + ' main',
@@ -50,12 +27,16 @@
              'key_url': 'https://ceph.com/git/?p=ceph.git;a=blob_plain;f=keys/release.asc',
             },
         ],
+    },
+}) %}
+{% do ceph.update({
+    'pkg': {
+        'pkgs': {'ceph': '0.87-1' + grains['oscodename'],},
     }
 }) %}
 {% elif grains['os_family'] in ['RedHat'] %}
 {% do ceph.update({
-    'base': {
-        'pkgs': {'ceph': '0.87-0.el' + grains['osmajorrelease'],},
+    'repo': {
         'manage_repo': 1,
         'repos': [
             {'name': 'ceph',
@@ -64,25 +45,12 @@
              'gpgcheck': '1',
              'gpgkey': 'https://ceph.com/git/?p=ceph.git;a=blob_plain;f=keys/release.asc',
             },
-            {'name': 'base',
-             'humanname': 'base',
-             'baseurl': 'http://mirrors.ustc.edu.cn/centos/' + grains['osmajorrelease'] + '/os/$basearch',
-             'gpgcheck': '1',
-             'gpgkey': 'http://mirrors.ustc.edu.cn/centos/RPM-GPG-KEY-CentOS-' + grains['osmajorrelease'],
-            },
-            {'name': 'extras',
-             'humanname': 'extras',
-             'baseurl': 'http://mirrors.ustc.edu.cn/centos/' + grains['osmajorrelease'] + '/extras/$basearch',
-             'gpgcheck': '1',
-             'gpgkey': 'http://mirrors.ustc.edu.cn/centos/RPM-GPG-KEY-CentOS-' + grains['osmajorrelease'],
-            },
-            {'name': 'epel',
-             'humanname': 'epel',
-             'baseurl': 'http://mirrors.ustc.edu.cn/epel/' + grains['osmajorrelease'] + '/$basearch',
-             'gpgcheck': '1',
-             'gpgkey': 'http://mirrors.ustc.edu.cn/epel/RPM-GPG-KEY-EPEL-' + grains['osmajorrelease'],
-            },
         ],
+    }
+}) %}
+{% do ceph.update({
+    'pkg': {
+        'pkgs': {'ceph': '0.87-0.el' + grains['osmajorrelease'],},
     }
 }) %}
 {% endif %}
@@ -92,14 +60,14 @@
         'global': {
             'fsid': '850007de-f635-46e4-b490-ac7128c784e6',
             'auth_type': 'cephx',
-            'mon_initial_members': grains['host'],
+            'mon_initial_members': grains['id'],
         },
         'mon': {
         },
         'osd': {
         },
         'mons': [
-            {'id': grains['host'], 'addr': grains['ipv4'][0] + ':6789'},
+            {'id': grains['id'], 'addr': grains['ipv4'][0] + ':6789'},
         ],
     },
     'osd': {
@@ -112,5 +80,5 @@
 
 {% do salt['grains.filter_by'](
     {'default': ceph},
-    merge = salt['pillar.get']('ceph')
+    merge = salt['pillar.get']('ceph', {})
 ) %}
