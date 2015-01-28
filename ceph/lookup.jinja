@@ -1,7 +1,3 @@
-# As of release 2014.7.0, the grains.filter_by interface in salt-ssh
-# does not support 'default' and 'base' keyword parameters, so do not
-# use this formula under salt-ssh unless you change the code accordingly.
-
 {% set ceph = {
     'cluster': 'ceph',
     'mon_key': 'AQATGHJTUCBqIBAA7M2yafV1xctn1pgr3GcKPg==',
@@ -59,7 +55,6 @@
     'conf': {
         'global': {
             'fsid': '850007de-f635-46e4-b490-ac7128c784e6',
-            'auth_type': 'cephx',
             'mon_initial_members': grains['id'],
         },
         'mon': {
@@ -78,7 +73,14 @@
     }
 }) %}
 
+# As of release 2014.7.0, the grains.filter_by interface in salt-ssh
+# does not support 'default' and 'base' keyword parameters, if it does
+# change the code accordingly.
+{% if 0 %}
 {% do salt['grains.filter_by'](
     {'default': ceph},
     merge = salt['pillar.get']('ceph', {})
 ) %}
+{% else %}
+{% do ceph.update(salt['pillar.get']('ceph', {})) %}
+{% endif %}

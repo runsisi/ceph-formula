@@ -95,6 +95,9 @@
 }) %}
 {% endif %}
 
+# As of release 2014.7.0, the grains.filter_by interface in salt-ssh
+# does not support 'default' and 'base' keyword parameters, if it does
+# change the code accordingly.
 {% if 0 %}
 {% do salt['grains.filter_by'](
     {'default': bootstrap},
