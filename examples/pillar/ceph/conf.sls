@@ -13,8 +13,6 @@ ceph:
       osd_pool_default_min_size: 1
       osd_crush_chooseleaf_type: 0
       mon_initial_members: {{ grains['id'] }},
+      mon_host: {{ grains['ipv4'][0] }}:6789,
     mon: {}
     osd: {}
-    mons:
-      - id: {{ grains['id'] }}
-        addr: {{ grains['ipv4'][0] + ':6789' }}

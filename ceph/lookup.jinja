@@ -12,6 +12,9 @@
     'osd': {}
 } %}
 
+
+### ceph.repo
+
 {% if grains['os_family'] in ['Debian',] %}
 {% do ceph.update({
     'repo': {
@@ -24,11 +27,6 @@
              'key_url': 'https://ceph.com/git/?p=ceph.git;a=blob_plain;f=keys/release.asc',
             },
         ],
-    },
-}) %}
-{% do ceph.update({
-    'pkg': {
-        'pkgs': {'ceph': '0.87-1' + grains['oscodename'],},
     }
 }) %}
 {% elif grains['os_family'] in ['RedHat'] %}
@@ -45,6 +43,18 @@
         ],
     }
 }) %}
+{% endif %}
+
+
+### ceph.pkg
+
+{% if grains['os_family'] in ['Debian',] %}
+{% do ceph.update({
+    'pkg': {
+        'pkgs': {'ceph': '0.87-1' + grains['oscodename'],},
+    }
+}) %}
+{% elif grains['os_family'] in ['RedHat'] %}
 {% if grains['osmajorrelease'] == '6' %}
 {% do ceph.update({
     'pkg': {
@@ -60,20 +70,35 @@
 {% endif %}
 {% endif %}
 
+
+### ceph.conf
+
 {% do ceph.update({
     'conf': {
         'global': {
             'fsid': '850007de-f635-46e4-b490-ac7128c784e6',
             'mon_initial_members': grains['id'],
+            'mon_host': grains['ipv4'][0] + ':6789',
         },
         'mon': {
         },
         'osd': {
         },
-        'mons': [
-            {'id': grains['id'], 'addr': grains['ipv4'][0] + ':6789'},
-        ],
-    },
+    }
+}) %}
+
+
+### ceph.mon
+
+{% do ceph.update({
+    'mon': {
+    }
+}) %}
+
+
+### ceph.osd
+
+{% do ceph.update({
     'osd': {
         'osds': [
             {'data': '/ceph-d1', 'journal': '/tmp/ceph-jounal-d1'},
@@ -81,6 +106,9 @@
         ],
     }
 }) %}
+
+
+### merge with pillar
 
 # As of release 2014.7.0, the grains.filter_by interface in salt-ssh
 # does not support 'default' and 'base' keyword parameters, if it does
