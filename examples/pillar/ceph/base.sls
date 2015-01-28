@@ -24,5 +24,9 @@ ceph:
         gpgkey: https://ceph.com/git/?p=ceph.git;a=blob_plain;f=keys/release.asc
   pkg:
     pkgs:
-      ceph: 0.87-0.el{{ grains['osmajorrelease'] }}
+      {% if grains['osmajorrelease'] == '6' %}
+      ceph: 0.87-0.el6
+      {% elif grains['osmajorrelease'] == '7' %}
+      ceph: 0.87-0.el7.centos
+      {% endif %}
 {% endif %}
