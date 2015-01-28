@@ -1,6 +1,7 @@
 base:
   '*':
-    - ceph.base
+    - ceph.repo
+    - ceph.pkg
     - ceph.conf
     - ceph.osd
     - ceph.bootstrap.salt
