@@ -1,13 +1,13 @@
-ceph10:
-  host: ceph10
+brs17:
+  host: 10.118.202.17
   user: root
   passwd: 123456
-ceph46:
-  host: ceph46
+brs98:
+  host: 10.118.202.98
   user: root
   passwd: 123456
-ceph239:
-  host: ceph239
+brs159:
+  host: 10.118.202.159
   user: root
   passwd: 123456
 brs182:
