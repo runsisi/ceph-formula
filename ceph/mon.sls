@@ -60,6 +60,15 @@ ceph.mon.mkfs:
         --mkfs --id {{ mon_id }} {{ keyring_option }} {{ public_addr_option }}
     - creates: {{ mon_data }}/done
 
+ceph.mon.conf.update:
+  ini.sections_present:
+    - name: /etc/ceph/{{ cluster }}.conf
+    - sections:
+        mon.{{ mon_id }}:
+          host: {{ grains['host'] | default('localhost', True) }}
+    - require:
+      - cmd: ceph.mon.mkfs
+
 ceph.mon.dummy.files.touch:
   file.managed:
     - names:
@@ -73,7 +82,7 @@ ceph.mon.dummy.files.touch:
     - makedirs: True
     - replace: False
     - require:
-      - cmd: ceph.mon.mkfs
+      - ini: ceph.mon.conf.update
 
 ceph.mon.restart:
   cmd.wait:
@@ -85,6 +94,7 @@ ceph.mon.restart:
       - file: ceph.mon.dummy.files.touch
     - watch:
       - file: ceph.conf.setup
+      - ini: ceph.mon.conf.update
       - cmd: ceph.mon.mkfs
 
 ceph.mon.start:
