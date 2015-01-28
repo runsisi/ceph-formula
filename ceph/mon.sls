@@ -14,7 +14,7 @@
     | replace('$type', 'mon')
     | replace('$id', mon_id)
     | replace('$host',  salt['grains.get']('host')) %}
-{% set public_addr = ceph.conf.mon.public_addr | default('') | trim | default('', True) %}
+{% set public_addr = ceph.mon.public_addr | default('') | trim | default('', True) %}
 {% set keyring_option = '--keyring /tmp/' + cluster + '.mon.tmp.keyring' if auth_type == 'cephx' else '' %}
 {% set public_addr_option = '--public_addr ' + public_addr if public_addr else '' %}
 
@@ -66,6 +66,9 @@ ceph.mon.conf.update:
     - sections:
         mon.{{ mon_id }}:
           host: {{ grains['host'] | default('localhost', True) }}
+          {% if public_addr %}
+          mon_addr: {{ public_addr }}
+          {% endif %}
     - require:
       - cmd: ceph.mon.mkfs
 
