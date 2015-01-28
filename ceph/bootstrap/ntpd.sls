@@ -1,4 +1,4 @@
-{% from 'ceph/bootstrap/lookup.jinja' import ntp with context %}
+{% from 'ceph/bootstrap/lookup.jinja' import bootstrap with context %}
 
 {% set ntp = bootstrap.ntp %}
 
