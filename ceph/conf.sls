@@ -3,7 +3,6 @@
 {% set pkgs = ceph.pkg.pkgs | default({}) %}
 {% set cluster = ceph.cluster | default('') | trim | default('ceph', True) %}
 {% set auth_type = ceph.auth_type | default('') | trim | default('cephx', True) %}
-{% do ceph.conf.global.pop('auth_type') %}
 {% if auth_type == 'none' %}
 {% do ceph.conf.global.update({
     'auth_cluster_required': 'none',
