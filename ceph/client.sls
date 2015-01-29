@@ -12,7 +12,7 @@ ceph.client.keyring.create:
     - mode: 644
     - replace: False
     - require:
-      - file: ceph.conf.setup
+      - ini: ceph.conf.setup
   cmd.run:
     - name: >
         ceph-authtool /etc/ceph/{{ cluster }}.client.admin.keyring

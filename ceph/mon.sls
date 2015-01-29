@@ -29,7 +29,7 @@ ceph.mon.tmp.keyring.create:
     - mode: 644
     - replace: False
     - require:
-      - file: ceph.conf.setup
+      - ini: ceph.conf.setup
     - unless:
       - test -f {{ mon_data }}/keyring
   cmd.run:
@@ -44,7 +44,7 @@ ceph.mon.tmp.keyring.create:
     - require:
       - file: ceph.mon.tmp.keyring.create
     - require_in:
-      - cmd: ceph.mon.mkfs
+      - file: ceph.mon.mkfs
 {% endif %}
 
 ceph.mon.mkfs:
@@ -52,7 +52,7 @@ ceph.mon.mkfs:
     - name: {{ mon_data }}
     - makedirs: True
     - require:
-      - file: ceph.conf.setup
+      - ini: ceph.conf.setup
   cmd.run:
     - name: >
         ceph-mon --cluster {{ cluster }}
@@ -96,7 +96,7 @@ ceph.mon.restart:
     - require:
       - file: ceph.mon.dummy.files.touch
     - watch:
-      - file: ceph.conf.setup
+      - ini: ceph.conf.setup
       - ini: ceph.mon.conf.update
       - cmd: ceph.mon.mkfs
 

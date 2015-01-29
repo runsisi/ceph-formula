@@ -9,6 +9,7 @@
     'auth_service_required': 'none',
     'auth_client_required': 'none' }) %}
 {% endif %}
+{% set conf = ceph.conf %}
 
 include:
   - ceph.pkg
@@ -16,10 +17,6 @@ include:
 ceph.conf.setup:
   file.managed:
     - name: /etc/ceph/{{ cluster }}.conf
-    - source: salt://ceph/files/ceph.conf
-    - template: jinja
-    - context:
-        ceph: {{ ceph }}
     - makedirs: True
     - user: root
     - group: root
@@ -28,3 +25,17 @@ ceph.conf.setup:
       {% for pkg, ver in pkgs.iteritems() %}
       - pkg: ceph.pkg.{{ pkg }}.{{ ver }}.install
       {% endfor %}
+  ini.sections_present:
+    - name: /etc/ceph/{{ cluster }}.conf
+    - sections:
+        {% for section, options in conf.iteritems() %}
+        {% if not options %}
+        {% continue %}
+        {% endif %}
+        {{ section }}:
+            {% for key, value in options.iteritems() %}
+            {{ key }}: '{{ value }}'
+            {% endfor %}
+        {% endfor %}
+    - require:
+      - file: ceph.conf.setup
