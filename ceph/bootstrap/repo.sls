@@ -41,13 +41,15 @@ ceph.bootstrap.repo.{{ repo.humanname }}.setup:
     {% endwith %}
     {% endwith %}
 {% elif grains['os_family'] in ['RedHat'] %}
+    {% with gpgkey = repo.gpgkey | default('') | trim %}
     - name: {{ repo.name }}
     - humanname: {{ repo.humanname }}
     - baseurl: {{ repo.baseurl }}
     - gpgcheck: {{ repo.gpgcheck }}
-    {% if repo.gpgcheck %}
-    - gpgkey: {{ repo.gpgkey }}
+    {% if repo.gpgcheck and gpgkey %}
+    - gpgkey: {{ gpgkey }}
     {% endif %}
+    {% endwith %}
 {% endif %}
 
 {% endfor %}
