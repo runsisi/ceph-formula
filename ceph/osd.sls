@@ -26,8 +26,8 @@ ceph.osd.keyring.create:
       - file: ceph.osd.keyring.create
 
 {% for osd in osds %}
-{% with data = osd['data'] %}
-{% with journal = osd['journal'] | default('') %}
+{% set data = osd['data'] %}
+{% set journal = osd['journal'] | default('') %}
 
 ceph.osd.{{ data }}.prepare:
   file.directory:
@@ -52,6 +52,4 @@ ceph.osd.{{ data }}.activate:
     - require:
       - cmd: ceph.osd.{{ data }}.prepare
 
-{% endwith %}
-{% endwith %}
 {% endfor %}

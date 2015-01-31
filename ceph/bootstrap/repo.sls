@@ -26,8 +26,8 @@ ceph.bootstrap.repo.cleanup:
 ceph.bootstrap.repo.{{ repo.humanname }}.setup:
   pkgrepo.managed:
 {% if grains['os_family'] in ['Debian',] %}
-    {% with key_url = repo.key_url | default('') | trim %}
-    {% with ppa = repo.ppa | default('') | trim %}
+    {% set key_url = repo.key_url | default('') | trim %}
+    {% set ppa = repo.ppa | default('') | trim %}
     - name: {{ repo.name }}
     - humanname: {{ repo.humanname }}
     - dist: {{ repo.dist }}
@@ -38,10 +38,8 @@ ceph.bootstrap.repo.{{ repo.humanname }}.setup:
     {% if ppa %}
     - ppa: {{ ppa }}
     {% endif %}
-    {% endwith %}
-    {% endwith %}
 {% elif grains['os_family'] in ['RedHat'] %}
-    {% with gpgkey = repo.gpgkey | default('') | trim %}
+    {% set gpgkey = repo.gpgkey | default('') | trim %}
     - name: {{ repo.name }}
     - humanname: {{ repo.humanname }}
     - baseurl: {{ repo.baseurl }}
@@ -49,7 +47,6 @@ ceph.bootstrap.repo.{{ repo.humanname }}.setup:
     {% if repo.gpgcheck and gpgkey %}
     - gpgkey: {{ gpgkey }}
     {% endif %}
-    {% endwith %}
 {% endif %}
 
 {% endfor %}
