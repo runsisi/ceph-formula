@@ -1,4 +1,4 @@
-{% if salt['grains.get']('os_family') in ['Debian',] %}
+{% if grains['os_family'] in ['Debian',] %}
 ceph:
   bootstrap:
     repo:
@@ -24,7 +24,7 @@ ceph:
           dist: {{ grains['oscodename'] }}
           file: /etc/apt/sources.list.d/saltstack-salt.list
           ppa: saltstack/salt
-{% elif salt['grains.get']('os_family') in ['RedHat'] %}
+{% elif grains['os_family'] in ['RedHat'] %}
 ceph:
   bootstrap:
     repo:

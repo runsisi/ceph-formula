@@ -1,10 +1,10 @@
-{% if salt['grains.get']('os_family') in ['Debian',] %}
+{% if grains['os_family'] in ['Debian',] %}
 ceph:
   pkg:
     pkgs:
       ceph: 0.87-1{{ grains['oscodename'] }}
     manage_repo: 1
-{% elif salt['grains.get']('os_family') in ['RedHat'] %}
+{% elif grains['os_family'] in ['RedHat'] %}
 {% if grains['osmajorrelease'] == '6' %}
 ceph:
   pkg:

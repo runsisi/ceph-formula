@@ -1,14 +1,14 @@
-{% if salt['grains.get']('os_family') in ['Debian',] %}
+{% if grains['os_family'] in ['Debian',] %}
 ceph:
   repo:
     manage_repo: 1
     repos:
-      - name: deb http://ceph.com/debian-giant {{ salt['grains.get']('oscodename') }} main
+      - name: deb http://ceph.com/debian-giant {{ grains['oscodename'] }} main
         humanname: ceph
-        dist: {{ salt['grains.get']('oscodename') }}
+        dist: {{ grains['oscodename'] }}
         file: /etc/apt/sources.list.d/ceph.list
         key_url: https://ceph.com/git/?p=ceph.git;a=blob_plain;f=keys/release.asc
-{% elif salt['grains.get']('os_family') in ['RedHat'] %}
+{% elif grains['os_family'] in ['RedHat'] %}
 ceph:
   repo:
     manage_repo: 1
