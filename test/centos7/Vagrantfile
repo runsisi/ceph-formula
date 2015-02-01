@@ -1,0 +1,47 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+# Every MON and OSD has a 'public' network 192.168.133.0/24 and
+# every OSD has another 'cluster' network 192.168.134.0/24.
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "centos7.0"
+  config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'"
+
+  config.vm.provider :virtualbox do |vb|
+    vb.customize ["modifyvm", :id, "--nictype1", "virtio"]
+    vb.customize ["modifyvm", :id, "--nictype2", "virtio"]
+    vb.customize ["modifyvm", :id, "--nictype3", "virtio"]
+  end
+
+  # define a machine as a master
+  config.vm.define "master" do |master|
+    master.vm.hostname = "master.test"
+    master.vm.network :private_network, ip: "192.168.133.9"
+    master.vm.provision :shell, :path => "vminit.sh"
+  end
+
+  # MON
+  (0..0).each do |i|
+    config.vm.define "mon#{i}" do |mon|
+      mon.vm.hostname = "ceph-mon#{i}.test"
+      mon.vm.network :private_network, ip: "192.168.133.1#{i}"
+      mon.vm.provision :shell, :path => "vminit.sh"
+    end
+  end
+
+  # OSD
+  (0..0).each do |i|
+    config.vm.define "osd#{i}" do |osd|
+      osd.vm.hostname = "ceph-osd#{i}.test"
+      osd.vm.network :private_network, ip: "192.168.133.10#{i}"
+      osd.vm.network :private_network, ip: "192.168.134.10#{i}", virtualbox__intnet: "cluster"
+      osd.vm.provision :shell, :path => "vminit.sh"
+      (0..0).each do |d|
+        osd.vm.provider :virtualbox do |vb|
+          vb.customize [ "createhd", "--filename", "osd-disk-#{i}-#{d}", "--size", "102400" ]
+          vb.customize [ "storageattach", :id, "--storagectl", "SATA", "--port", 3+d, "--device", 0, "--type", "hdd", "--medium", "osd-disk-#{i}-#{d}.vdi" ]
+        end
+      end
+    end
+  end
+end
