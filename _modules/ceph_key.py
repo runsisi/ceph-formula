@@ -58,6 +58,42 @@ def create_keyring(name,
     # Execute the cmd
     return not __salt__['cmd.retcode'](cmd)
 
+def _check_entity(name,
+                  key,
+                  admin_name,
+                  admin_keyring,
+                  cluster,
+                  timeout):
+    # Construct ceph.conf path
+    conf = '/etc/ceph/{0}.conf'.format(cluster)
+
+    # Test if entity exists
+    cmd = ['ceph']
+
+    cmd.extend(['--cluster {0}'.format(cluster)])
+    cmd.extend(['--conf {0}'.format(conf)])
+    cmd.extend(['--connect-timeout {0}'.format(timeout)])
+    cmd.extend(['--name {0}'.format(admin_name)])
+    cmd.extend(['--keyring {0}'.format(admin_keyring)])
+    cmd.extend(['auth get-key'])
+    cmd.extend([name])
+
+    ret = __salt__['cmd.run_all'](' '.join(cmd))
+
+    retcode = ret['retcode']
+
+    if retcode:
+        return retcode
+
+    # Entity exists then check if key matches
+    old_key = ret['stdout']
+    rexpr = '^{0}$'.format(key)
+
+    if re.match(rexpr, old_key):
+        return 0
+
+    return errno.EEXIST
+
 def register_entity(name,
                     key,
                     admin_name,
@@ -70,35 +106,13 @@ def register_entity(name,
     # Construct ceph.conf path
     conf = '/etc/ceph/{0}.conf'.format(cluster)
 
-    # Test if entity exists
-    cmd = 'ceph --cluster {0} --conf {1} --connect-timeout {2} ' \
-          '--name {3} --keyring {4} auth get-key {5}'\
-        .format(cluster, conf, timeout, admin_name, admin_keyring, name)
-    ret = __salt__['cmd.run_all'](cmd)
+    retcode = _check_entity(name, key, admin_name, admin_keyring, cluster, timeout)
 
-    retcode = ret['retcode']
-
-    if retcode and retcode != errno.ENOENT:
-        return False
-
-    need_add_entity = True
-
-    # Entity exists
-    if not retcode:
-        old_key = ret['stdout']
-        rexpr = '^{0}$'.format(key)
-
-        if not re.search(rexpr, old_key):
-            if not unregister_entity(name, admin_name, admin_keyring):
-                return False
-        else:
-            need_add_entity = False
-
-    keyring = None
-
-    try:
-        # Need to add a new entity
-        if need_add_entity:
+    if retcode == errno.EEXIST:
+        if not unregister_entity(name, admin_name, admin_keyring):
+            return False
+    elif retcode == errno.ENOENT:
+        try:
             # Create a temp keyring
             keyring = utils.mkstemp()
 
@@ -106,33 +120,49 @@ def register_entity(name,
                 return False
 
             # Add entity
-            cmd = 'ceph --cluster {0} --conf {1} --connect-timeout {2} ' \
-                  '--name {3} --keyring {4} --in-file {5} auth add {6}'\
-                .format(cluster, conf, timeout, admin_name, admin_keyring, keyring, name)
+            cmd = ['ceph']
 
-            if __salt__['cmd.retcode'](cmd):
+            cmd.extend(['--cluster {0}'.format(cluster)])
+            cmd.extend(['--conf {0}'.format(conf)])
+            cmd.extend(['--connect-timeout {0}'.format(timeout)])
+            cmd.extend(['--name {0}'.format(admin_name)])
+            cmd.extend(['--keyring {0}'.format(admin_keyring)])
+            cmd.extend(['--in-file {0}'.format(keyring)])
+            cmd.extend(['auth add'])
+            cmd.extend([name])
+
+            if __salt__['cmd.retcode'](' '.join(cmd)):
                 return False
-
-        # Update the entity's caps
-        caps = []
-
-        if mon_caps:
-            caps.extend(['mon "{0}"'.format(mon_caps)])
-        if osd_caps:
-            caps.extend(['osd "{0}"'.format(osd_caps)])
-        if mds_caps:
-            caps.extend(['mds "{0}"'.format(mds_caps)])
-
-        if caps:
-            cmd = 'ceph --cluster {0} --conf {1} --connect-timeout {2} ' \
-                  '--name {3} --keyring {4} auth caps {5} {6}'\
-                .format(cluster, conf, timeout, admin_name, admin_keyring, name,
-                        ' '.join(caps))
-            if __salt__['cmd.retcode'](cmd):
-                return False
-    finally:
-        if keyring:
+            return True
+        finally:
             utils.safe_rm(keyring)
+    elif retcode:
+        return False
+
+    # Update the entity's caps
+    caps = []
+
+    if mon_caps:
+        caps.extend(['mon "{0}"'.format(mon_caps)])
+    if osd_caps:
+        caps.extend(['osd "{0}"'.format(osd_caps)])
+    if mds_caps:
+        caps.extend(['mds "{0}"'.format(mds_caps)])
+
+    if caps:
+        cmd = ['ceph']
+
+        cmd.extend(['--cluster {0}'.format(cluster)])
+        cmd.extend(['--conf {0}'.format(conf)])
+        cmd.extend(['--connect-timeout {0}'.format(timeout)])
+        cmd.extend(['--name {0}'.format(admin_name)])
+        cmd.extend(['--keyring {0}'.format(admin_keyring)])
+        cmd.extend(['auth caps'])
+        cmd.extend([name])
+        cmd.extend([' '.join(caps)])
+
+        if __salt__['cmd.retcode'](' '.join(cmd)):
+            return False
 
     return True
 
@@ -145,8 +175,14 @@ def unregister_entity(name,
     conf = '/etc/ceph/{0}.conf'.format(cluster)
 
     # Remove the entity
-    cmd = 'ceph --cluster {0} --conf {1} --connect-timeout {2} ' \
-          '--name {3} --keyring {4} auth del {5}'.format(
-        cluster, conf, timeout, admin_name, admin_keyring, name)
+    cmd = ['ceph']
 
-    return not __salt__['cmd.retcode'](cmd)
+    cmd.extend(['--cluster {0}'.format(cluster)])
+    cmd.extend(['--conf {0}'.format(conf)])
+    cmd.extend(['--connect-timeout {0}'.format(timeout)])
+    cmd.extend(['--name {0}'.format(admin_name)])
+    cmd.extend(['--keyring {0}'.format(admin_keyring)])
+    cmd.extend(['auth del'])
+    cmd.extend([name])
+
+    return not __salt__['cmd.retcode'](' '.join(cmd))
