@@ -162,7 +162,10 @@ def _update_conf(op,
         if mon_addr:
             options['mon addr'] = mon_addr
         section = {section_name: options}
-        __salt__['ini.set_option'](conf, section)
+        ret = __salt__['ini.set_option'](conf, section)
+        # This relies on implementation of 'ini' module
+        if 'error' in ret['changes']:
+            return False
     else:
         __salt__['ini.remove_section'](conf, section_name)
 
