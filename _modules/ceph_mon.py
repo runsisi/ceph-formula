@@ -7,7 +7,6 @@ from __future__ import absolute_import
 
 # Import python libs
 import errno
-import re
 from os import path, listdir
 
 # Import salt libs
@@ -15,9 +14,10 @@ from salt import utils
 
 __virtualname__ = 'ceph_mon'
 
+CEPH_CLUSTER_CONNECT_TIMEOUT = 60       # 60 seconds
+DONE_FILE_VERSION = 'v0.1'
 DONE_FILE_NAME = 'sysvinit'
 DONE_FILE_MAGIC = '\xc3\xc3\xc8\xfd'
-CEPH_CLUSTER_CONNECT_TIMEOUT = 60       # 60 seconds
 
 def __virtual__():
     '''
@@ -44,6 +44,7 @@ def _check_monfs(mon_id,
         return errno.EEXIST
 
     lines = ['magic={0}'.format(DONE_FILE_MAGIC),
+             'version={0}'.format(DONE_FILE_VERSION),
              'mon_id={0}'.format(mon_id),
              'mon_addr={0}'.format(mon_addr if mon_addr else 'None'),
              'auth_type={0}'.format(auth_type),
@@ -53,7 +54,7 @@ def _check_monfs(mon_id,
         with utils.fopen(done_file_path, 'r') as done_file:
             lineno = 0
             for line in done_file:
-                if not re.match(lines[lineno], line) or lineno == len(lines):
+                if line.strip() != lines[lineno] or lineno == len(lines):
                     return errno.EEXIST
                 lineno += 1
     except:
@@ -68,6 +69,7 @@ def _tag_monfs(mon_id,
     done_file_path = mon_data + DONE_FILE_NAME
 
     lines = ['magic={0}'.format(DONE_FILE_MAGIC),
+             'version={0}'.format(DONE_FILE_VERSION),
              'mon_id={0}'.format(mon_id),
              'mon_addr={0}'.format(mon_addr if mon_addr else 'None'),
              'auth_type={0}'.format(auth_type),
@@ -103,6 +105,9 @@ def _create_monfs(mon_id,
         if not retcode:
             return True
         elif retcode == errno.EEXIST:
+            # Clean
+            stop_mon(mon_id, cluster)
+
             cmd = ['rm -rf']
             cmd.extend(['{0}*'.format(mon_data)])
             __salt__['cmd.run'](' '.join(cmd))
@@ -136,13 +141,6 @@ def _create_monfs(mon_id,
     finally:
         utils.safe_rm(keyring)
 
-    # Create permanent mon keyring
-    if auth_type == 'cephx' and mon_key:
-        keyring = mon_data + keyring
-        if not __salt__['ceph_key.create_keyring']('mon.', mon_key, keyring,
-                                                   mon_caps='allow *'):
-            return False
-
     # Create a magic file to prevent the next try
     if not _tag_monfs(mon_id, mon_data, mon_addr, auth_type, mon_key):
         return False
@@ -150,21 +148,34 @@ def _create_monfs(mon_id,
     return True
 
 def create_mon(mon_id,
-               mon_data='',
                mon_addr='',
                auth_type='cephx',
                mon_key='',
                admin_key='',
                cluster='ceph'):
-    # Normalize mon_data directory
-    if mon_data:
-        if not mon_data.endswith('/'):
-            mon_data += '/'
-    else:
-        mon_data = '/var/lib/ceph/mon/{0}-{1}/'.format(cluster, mon_id)
+    # Construct ceph.conf path
+    conf = '/etc/ceph/{0}.conf'.format(cluster)
+
+    # Get mon_data directory
+    cmd = ['ceph-mon']
+    cmd.extend(['--cluster {0}'.format(cluster)])
+    cmd.extend(['--conf {0}'.format(conf)])
+    cmd.extend(['--id {0}'.format(mon_id)])
+    cmd.extend(['--show-config-value'])
+    cmd.extend(['mon_data'])
+
+    # Normalize mon_data directory path
+    mon_data = __salt__['cmd.run_stdout'](' '.join(cmd))
+
+    if not mon_data.endswith('/'):
+        mon_data += '/'
 
     # Create mon fs
     if not _create_monfs(mon_id, mon_data, mon_addr, auth_type, mon_key, cluster):
+        return False
+
+    # Start mon
+    if not start_mon(mon_id, cluster):
         return False
 
     # Register client.admin auth info
@@ -178,3 +189,49 @@ def create_mon(mon_id,
             return False
 
     return True
+
+def start_mon(mon_id='',
+              cluster='ceph'):
+    # Construct ceph.conf path
+    conf = '/etc/ceph/{0}.conf'.format(cluster)
+
+    cmd = ['/etc/init.d/ceph']
+    cmd.extend(['--cluster {0}'.format(cluster)])
+    cmd.extend(['--conf {0}'.format(conf)])
+    cmd.extend(['start'])
+    if mon_id:
+        cmd.extend(['mon.{0}'.format(mon_id)])
+    else:
+        cmd.extend(['mon'])
+
+    return not __salt__['cmd.retcode'](' '.join(cmd))
+
+def stop_mon(mon_id='',
+             cluster='ceph'):
+    # Construct ceph.conf path
+    conf = '/etc/ceph/{0}.conf'.format(cluster)
+
+    cmd = ['/etc/init.d/ceph']
+    cmd.extend(['--cluster {0}'.format(cluster)])
+    cmd.extend(['--conf {0}'.format(conf)])
+    cmd.extend(['stop'])
+    if mon_id:
+        cmd.extend(['mon.{0}'.format(mon_id)])
+    else:
+        cmd.extend(['mon'])
+
+    return not __salt__['cmd.retcode'](' '.join(cmd))
+
+def destroy_mon(mon_id,
+                cluster='ceph'):
+    if not stop_mon(mon_id, cluster):
+        return False
+
+    cmd = ['ceph-mon']
+    cmd.extend(['--id {0}'.format(mon_id)])
+    cmd.extend(['--show-config-value'])
+    cmd.extend(['mon_data'])
+
+    mon_data = __salt__['cmd.run_stdout'](' '.join(cmd))
+
+    return __salt__['file.remove'](mon_data)

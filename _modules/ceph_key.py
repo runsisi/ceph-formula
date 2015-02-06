@@ -7,7 +7,6 @@ from __future__ import absolute_import
 
 # Import python libs
 import errno
-import re
 
 # Import salt libs
 from salt import utils
@@ -87,9 +86,8 @@ def _check_entity(name,
 
     # Entity exists then check if key matches
     old_key = ret['stdout']
-    rexpr = '^{0}$'.format(key)
 
-    if re.match(rexpr, old_key):
+    if key == old_key:
         return 0
 
     return errno.EEXIST
@@ -111,7 +109,7 @@ def register_entity(name,
     if retcode == errno.EEXIST:
         if not unregister_entity(name, admin_name, admin_keyring):
             return False
-    elif retcode == errno.ENOENT:
+    if retcode == errno.EEXIST or retcode == errno.ENOENT:
         try:
             # Create a temp keyring
             keyring = utils.mkstemp()
