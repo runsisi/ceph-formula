@@ -15,8 +15,8 @@ from salt import utils
 __virtualname__ = 'ceph_mon'
 
 CEPH_CLUSTER_CONNECT_TIMEOUT = 60       # 60 seconds
-DONE_FILE_VERSION = 'v0.1'
 DONE_FILE_NAME = 'sysvinit'
+DONE_FILE_VERSION = 'v0.1'
 DONE_FILE_MAGIC = '\xc3\xc3\xc8\xfd'
 
 def __virtual__():
@@ -147,6 +147,27 @@ def _create_monfs(mon_id,
 
     return True
 
+def _update_conf(op,
+                 mon_id,
+                 mon_addr='',
+                 cluster='ceph'):
+    # Construct ceph.conf path
+    conf = '/etc/ceph/{0}.conf'.format(cluster)
+
+    section_name = 'mon.{0}'.format(mon_id)
+
+    if op == 'add':
+        options = {}
+        options['host'] = __grains__['host'] if __grains__['host'] else 'localhost'
+        if mon_addr:
+            options['mon addr'] = mon_addr
+        section = {section_name: options}
+        __salt__['ini.set_option'](conf, section)
+    else:
+        __salt__['ini.remove_section'](conf, section_name)
+
+    return True
+
 def create_mon(mon_id,
                mon_addr='',
                auth_type='cephx',
@@ -172,6 +193,10 @@ def create_mon(mon_id,
 
     # Create mon fs
     if not _create_monfs(mon_id, mon_data, mon_addr, auth_type, mon_key, cluster):
+        return False
+
+    # Update ceph.conf
+    if not _update_conf('add', mon_id, mon_addr, cluster):
         return False
 
     # Start mon
@@ -224,8 +249,11 @@ def stop_mon(mon_id='',
 
 def destroy_mon(mon_id,
                 cluster='ceph'):
-    if not stop_mon(mon_id, cluster):
-        return False
+    # Stop it
+    stop_mon(mon_id, cluster)
+
+    # Update ceph.conf
+    _update_conf('remove', mon_id, '', cluster)
 
     cmd = ['ceph-mon']
     cmd.extend(['--id {0}'.format(mon_id)])
