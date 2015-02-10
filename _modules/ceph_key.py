@@ -1,19 +1,25 @@
 # -*- coding: utf-8 -*-
 '''
 Module for managing ceph keys.
+
+author: runsisi@hust.edu.cn
 '''
 
 from __future__ import absolute_import
 
 # Import python libs
 import errno
+from os import path
 
 # Import salt libs
 from salt import utils
+from salt.exceptions import CommandExecutionError, SaltInvocationError
 
 __virtualname__ = 'ceph_key'
 
-CEPH_CLUSTER_CONNECT_TIMEOUT = 60       # 60 seconds
+CEPH_CLUSTER = 'ceph'                   # Default cluster name
+CEPH_CONF = '/etc/ceph/ceph.conf'       # Default cluster conf file
+CEPH_CONNECT_TIMEOUT = 60               # 60 seconds
 
 def __virtual__():
     '''
@@ -25,162 +31,334 @@ def __virtual__():
         return __virtualname__
     return False
 
-def create_keyring(name,
-                   key,
-                   keyring,
+def _error(ret, msg):
+    ret['result'] = False
+    ret['comment'] = msg
+    return ret
+
+def manage_keyring(keyring,
+                   entity_name,
+                   entity_key,
                    mon_caps=None,
                    osd_caps=None,
                    mds_caps=None,
                    user='root',
                    group='root',
                    mode='600'):
-    # Let's be simple
-    if __salt__['file.directory_exists'](keyring):
-        return False
-    if not __salt__['file.file_exists'](keyring):
-        __salt__['file.makedirs'](keyring, user, group, mode)
-        __salt__['file.touch'](keyring)
+    keyring = path.expanduser(keyring)
+    keyring = path.abspath(keyring)
 
-    # Ensure the keyring file's permissions
-    __salt__['file.check_perms'](keyring, None, user, group, mode)
+    ret = {
+        'name': keyring,
+        'result': True,
+        'comment': 'Keyring managed',
+        'changes': {}
+    }
 
-    # Construct ceph-authtool cmdline
-    cmd = 'ceph-authtool {0} --name {1} --add-key {2}'.format(keyring, name, key)
+    # Check keyring file
+    try:
+        if not path.exists(keyring):
+            dirname = path.dirname(keyring)
+            basename = path.basename(keyring)
 
+            if not path.exists(dirname):
+                __salt__['file.mkdir'](dirname, user, group, mode)
+                ret['changes'][dirname] = 'New directory'
+
+            if not __salt__['file.touch'](keyring):
+                return _error(ret, 'Create keyring failure')
+            ret['changes'][basename] = 'New file'
+        else:
+            if not __salt__['file.file_exists'](keyring):
+                return _error(ret, 'Path already exists and is not a file')
+
+        data, _ = __salt__['file.check_perms'](keyring, None,
+                                               user, group, mode, True)
+
+        if not data['result']:
+            return _error(ret, data['comment'])
+        if data['changes']:
+            ret['changes']['perms'] = data['changes']
+    except (OSError, CommandExecutionError, SaltInvocationError) as e:
+        return _error(ret, '{0}'.format(e))
+
+    # Check entity
+    entity = {'key': entity_key}
     if mon_caps:
-        cmd += ' --cap mon "{0}"'.format(mon_caps)
+        entity.update({'caps mon': '"{0}"'.format(mon_caps)})
     if osd_caps:
-        cmd += ' --cap osd "{0}"'.format(osd_caps)
+        entity.update({'caps osd': '"{0}"'.format(osd_caps)})
     if mds_caps:
-        cmd += ' --cap mds "{0}"'.format(mds_caps)
+        entity.update({'caps mds': '"{0}"'.format(mds_caps)})
 
-    # Execute the cmd
-    return not __salt__['cmd.retcode'](cmd)
+    fentity = __salt__['ini.get_section'](keyring, entity_name)
 
-def _check_entity(name,
-                  key,
+    if fentity == entity:
+        return ret
+
+    # Update entity
+    cmd = ['ceph-authtool']
+
+    cmd.append(keyring)
+    cmd.append('--name {0}'.format(entity_name))
+    cmd.append('--add-key {0}'.format(entity_key))
+    if mon_caps:
+        cmd.append('--cap mon "{0}"'.format(mon_caps))
+    if osd_caps:
+        cmd.append('--cap osd "{0}"'.format(osd_caps))
+    if mds_caps:
+        cmd.append('--cap mds "{0}"'.format(mds_caps))
+
+    cmd = ' '.join(cmd)
+
+    data = __salt__['cmd.run_all'](cmd)
+    if data['retcode']:
+        return _error(ret, '{0}'.format(data['stderr']))
+    ret['changes']['entity'] = entity
+
+    return ret
+
+def remove_keyring(keyring,
+                   name=''):
+    # TODO: Support remove a single entity
+    keyring = path.expanduser(keyring)
+    keyring = path.abspath(keyring)
+
+    ret = {
+        'name': keyring,
+        'result': True,
+        'comment': 'Keyring removed',
+        'changes': {}
+    }
+
+    if not path.exists(keyring):
+        ret['comment'] = 'Keyring does not exist, skip'
+        return ret
+
+    if not __salt__['file.file_exists'](keyring):
+        return _error(ret, 'Path exists and is not a file')
+
+    result = __salt__['file.remove'](keyring)
+    if result:
+        ret['changes'][keyring] = 'Removed'
+    else:
+        return _error(ret, 'Remove keyring failure')
+
+    return ret
+
+def manage_entity(name,
+                  entity_key,
                   admin_name,
                   admin_keyring,
-                  cluster,
-                  timeout):
-    # Construct ceph.conf path
-    conf = '/etc/ceph/{0}.conf'.format(cluster)
+                  mon_caps=None,
+                  osd_caps=None,
+                  mds_caps=None,
+                  cluster=CEPH_CLUSTER,
+                  conf=CEPH_CONF):
+    admin_keyring = path.expanduser(admin_keyring)
+    admin_keyring = path.abspath(admin_keyring)
 
-    # Test if entity exists
-    cmd = ['ceph']
+    ret = {
+        'name': name,
+        'result': True,
+        'comment': 'Entity managed',
+        'changes': {}
+    }
 
-    cmd.extend(['--cluster {0}'.format(cluster)])
-    cmd.extend(['--conf {0}'.format(conf)])
-    cmd.extend(['--connect-timeout {0}'.format(timeout)])
-    cmd.extend(['--name {0}'.format(admin_name)])
-    cmd.extend(['--keyring {0}'.format(admin_keyring)])
-    cmd.extend(['auth get-key'])
-    cmd.extend([name])
+    cluster, conf = __salt__['ceph_mon.normalize'](cluster, conf)
 
-    ret = __salt__['cmd.run_all'](' '.join(cmd))
+    try:
+        tmp_keyring = utils.mkstemp()
 
-    retcode = ret['retcode']
+        # Entity we wanted
+        entity = {'key': entity_key}
+        if mon_caps:
+            entity.update({'caps mon': '"{0}"'.format(mon_caps)})
+        if osd_caps:
+            entity.update({'caps osd': '"{0}"'.format(osd_caps)})
+        if mds_caps:
+            entity.update({'caps mds': '"{0}"'.format(mds_caps)})
 
-    if retcode:
-        return retcode
-
-    # Entity exists then check if key matches
-    old_key = ret['stdout']
-
-    if key == old_key:
-        return 0
-
-    return errno.EEXIST
-
-def register_entity(name,
-                    key,
-                    admin_name,
-                    admin_keyring,
-                    mon_caps=None,
-                    osd_caps=None,
-                    mds_caps=None,
-                    cluster='ceph',
-                    timeout=CEPH_CLUSTER_CONNECT_TIMEOUT):
-    # Construct ceph.conf path
-    conf = '/etc/ceph/{0}.conf'.format(cluster)
-
-    retcode = _check_entity(name, key, admin_name, admin_keyring, cluster, timeout)
-
-    if retcode == errno.EEXIST:
-        if not unregister_entity(name, admin_name, admin_keyring):
-            return False
-    if retcode == errno.EEXIST or retcode == errno.ENOENT:
-        try:
-            # Create a temp keyring
-            keyring = utils.mkstemp()
-
-            if not create_keyring(name, key, keyring, mon_caps, osd_caps, mds_caps):
-                return False
-
-            # Add entity
-            cmd = ['ceph']
-
-            cmd.extend(['--cluster {0}'.format(cluster)])
-            cmd.extend(['--conf {0}'.format(conf)])
-            cmd.extend(['--connect-timeout {0}'.format(timeout)])
-            cmd.extend(['--name {0}'.format(admin_name)])
-            cmd.extend(['--keyring {0}'.format(admin_keyring)])
-            cmd.extend(['--in-file {0}'.format(keyring)])
-            cmd.extend(['auth add'])
-            cmd.extend([name])
-
-            if __salt__['cmd.retcode'](' '.join(cmd)):
-                return False
-            return True
-        finally:
-            utils.safe_rm(keyring)
-    elif retcode:
-        return False
-
-    # Update the entity's caps
-    caps = []
-
-    if mon_caps:
-        caps.extend(['mon "{0}"'.format(mon_caps)])
-    if osd_caps:
-        caps.extend(['osd "{0}"'.format(osd_caps)])
-    if mds_caps:
-        caps.extend(['mds "{0}"'.format(mds_caps)])
-
-    if caps:
+        # Export entity
         cmd = ['ceph']
 
-        cmd.extend(['--cluster {0}'.format(cluster)])
-        cmd.extend(['--conf {0}'.format(conf)])
-        cmd.extend(['--connect-timeout {0}'.format(timeout)])
-        cmd.extend(['--name {0}'.format(admin_name)])
-        cmd.extend(['--keyring {0}'.format(admin_keyring)])
-        cmd.extend(['auth caps'])
-        cmd.extend([name])
-        cmd.extend([' '.join(caps)])
+        cmd.append('--cluster {0}'.format(cluster))
+        cmd.append('--conf {0}'.format(conf))
+        cmd.append('--connect-timeout {0}'.format(CEPH_CONNECT_TIMEOUT))
+        cmd.append('--name {0}'.format(admin_name))
+        cmd.append('--keyring {0}'.format(admin_keyring))
+        cmd.append('--out-file {0}'.format(tmp_keyring))
+        cmd.append('auth')
+        cmd.append('export')
+        cmd.append(name)
 
-        if __salt__['cmd.retcode'](' '.join(cmd)):
-            return False
+        cmd = ' '.join(cmd)
 
-    return True
+        data = __salt__['cmd.run_all'](cmd)
 
-def unregister_entity(name,
-                      admin_name,
-                      admin_keyring,
-                      cluster='ceph',
-                      timeout=CEPH_CLUSTER_CONNECT_TIMEOUT):
-    # Construct ceph.conf path
-    conf = '/etc/ceph/{0}.conf'.format(cluster)
+        if data['retcode'] and data['retcode'] != errno.ENOENT:
+            return _error(ret, '{0}'.format(data['stderr']))
+
+        # Entity exists
+        if not data['retcode']:
+            fentity = __salt__['ini.get_section'](tmp_keyring, name)
+
+            if not fentity:
+                return _error(ret, 'Read keyring failure')
+
+            if fentity == entity:
+                return ret
+
+            # Key matches
+            if fentity['key'] == entity['key']:
+                caps = []
+
+                if mon_caps:
+                    caps.append('mon "{0}"'.format(mon_caps))
+                if osd_caps:
+                    caps.append('osd "{0}"'.format(osd_caps))
+                if mds_caps:
+                    caps.append('mds "{0}"'.format(mds_caps))
+
+                caps = ' '.join(caps)
+
+                # ceph auth caps does not support zero caps
+                if caps:
+                    cmd = ['ceph']
+
+                    cmd.append('--cluster {0}'.format(cluster))
+                    cmd.append('--conf {0}'.format(conf))
+                    cmd.append('--connect-timeout {0}'.format(CEPH_CONNECT_TIMEOUT))
+                    cmd.append('--name {0}'.format(admin_name))
+                    cmd.append('--keyring {0}'.format(admin_keyring))
+                    cmd.append('auth')
+                    cmd.append('caps')
+                    cmd.append(name)
+                    cmd.append(caps)
+
+                    cmd = ' '.join(cmd)
+
+                    data = __salt__['cmd.run_all'](cmd)
+
+                    if data['retcode']:
+                        return _error(ret, '{0}'.format(data['stderr']))
+
+                    ret['changes']['before'] = fentity
+                    ret['changes']['after'] = entity
+
+                    return ret
+
+            # Key does not match or zero caps
+            cmd = ['ceph']
+
+            cmd.append('--cluster {0}'.format(cluster))
+            cmd.append('--conf {0}'.format(conf))
+            cmd.append('--connect-timeout {0}'.format(CEPH_CONNECT_TIMEOUT))
+            cmd.append('--name {0}'.format(admin_name))
+            cmd.append('--keyring {0}'.format(admin_keyring))
+            cmd.append('auth')
+            cmd.append('del')
+            cmd.append(name)
+
+            cmd = ' '.join(cmd)
+
+            data = __salt__['cmd.run_all'](cmd)
+
+            if data['retcode']:
+                return _error(ret, '{0}'.format(data['stderr']))
+
+            ret['changes']['before'] = fentity
+
+        # Entity does not exist or deleted by us
+        data = manage_keyring(tmp_keyring, name, entity_key, mon_caps, osd_caps, mds_caps)
+        if not data['result']:
+            return _error(ret, '{0}'.format(data['comment']))
+
+        # Add new entity
+        cmd = ['ceph']
+
+        cmd.append('--cluster {0}'.format(cluster))
+        cmd.append('--conf {0}'.format(conf))
+        cmd.append('--connect-timeout {0}'.format(CEPH_CONNECT_TIMEOUT))
+        cmd.append('--name {0}'.format(admin_name))
+        cmd.append('--keyring {0}'.format(admin_keyring))
+        cmd.append('--in-file {0}'.format(tmp_keyring))
+        cmd.append('auth')
+        cmd.append('add')
+        cmd.append(name)
+
+        cmd = ' '.join(cmd)
+
+        data = __salt__['cmd.run_all'](cmd)
+
+        if data['retcode']:
+            return _error(ret, '{0}'.format(data['stderr']))
+
+        ret['changes']['after'] = entity
+
+        return ret
+    finally:
+        utils.safe_rm(tmp_keyring)
+
+def remove_entity(name,
+                  admin_name,
+                  admin_keyring,
+                  cluster=CEPH_CLUSTER,
+                  conf=CEPH_CONF):
+    admin_keyring = path.expanduser(admin_keyring)
+    admin_keyring = path.abspath(admin_keyring)
+
+    ret = {
+        'name': name,
+        'result': True,
+        'comment': 'Entity removed',
+        'changes': {}
+    }
+
+    cluster, conf = __salt__['ceph_mon.normalize'](cluster, conf)
+
+    # Check entity
+    cmd = ['ceph']
+
+    cmd.append('--cluster {0}'.format(cluster))
+    cmd.append('--conf {0}'.format(conf))
+    cmd.append('--connect-timeout {0}'.format(CEPH_CONNECT_TIMEOUT))
+    cmd.append('--name {0}'.format(admin_name))
+    cmd.append('--keyring {0}'.format(admin_keyring))
+    cmd.append('auth')
+    cmd.append('get')
+    cmd.append(name)
+
+    cmd = ' '.join(cmd)
+
+    data = __salt__['cmd.run_all'](cmd)
+
+    if data['retcode'] == errno.ENOENT:
+        ret['comment'] = 'Entity does not exist, skip'
+        return ret
+
+    if data['retcode']:
+        return _error(ret, '{0}'.format(data['stderr']))
 
     # Remove the entity
     cmd = ['ceph']
 
-    cmd.extend(['--cluster {0}'.format(cluster)])
-    cmd.extend(['--conf {0}'.format(conf)])
-    cmd.extend(['--connect-timeout {0}'.format(timeout)])
-    cmd.extend(['--name {0}'.format(admin_name)])
-    cmd.extend(['--keyring {0}'.format(admin_keyring)])
-    cmd.extend(['auth del'])
-    cmd.extend([name])
+    cmd.append('--cluster {0}'.format(cluster))
+    cmd.append('--conf {0}'.format(conf))
+    cmd.append('--connect-timeout {0}'.format(CEPH_CONNECT_TIMEOUT))
+    cmd.append('--name {0}'.format(admin_name))
+    cmd.append('--keyring {0}'.format(admin_keyring))
+    cmd.append('auth')
+    cmd.append('del')
+    cmd.append(name)
 
-    return not __salt__['cmd.retcode'](' '.join(cmd))
+    cmd = ' '.join(cmd)
+
+    data = __salt__['cmd.run_all'](cmd)
+
+    if data['retcode']:
+        return _error(ret, '{0}'.format(data['stderr']))
+
+    ret['changes'][name] = 'Removed'
+
+    return ret
