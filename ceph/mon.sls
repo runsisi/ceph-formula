@@ -4,10 +4,12 @@
 {% set conf = '/etc/ceph/' + cluster + '.conf' %}
 
 {% set mon_id = ceph.mon.mon_id | default(grains['id']) %}
-{% set mon_key = ceph.mon_key | default('') | trim | default('ceph', True) %}
-{% set admin_key = ceph.admin_key | default('') | trim | default('ceph', True) %}
-{% set bootstrap_osd_key = ceph.bootstrap_osd_key | default('') | trim | default('ceph', True) %}
-{% set bootstrap_mds_key = ceph.bootstrap_mds_key | default('') | trim | default('ceph', True) %}
+{% set mon_addr = ceph.mon.mon_addr | default('') | trim %}
+
+{% set mon_key = ceph.mon_key | default('') | trim %}
+{% set admin_key = ceph.admin_key | default('') | trim %}
+{% set bootstrap_osd_key = ceph.bootstrap_osd_key | default('') | trim %}
+{% set bootstrap_mds_key = ceph.bootstrap_mds_key | default('') | trim %}
 
 include:
   - ceph.conf
@@ -16,7 +18,7 @@ ceph.mon.create:
   ceph_mon.present:
     - name: {{ mon_id }}
     - mon_key: {{ mon_key }}
-    - mon_addr: {{ public_addr }}
+    - mon_addr: {{ mon_addr }}
     - cluster: {{ cluster }}
     - conf: {{ conf }}
     - require:
