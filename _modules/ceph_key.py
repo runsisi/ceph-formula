@@ -175,15 +175,6 @@ def manage_entity(name,
 
         keyring = utils.mkstemp()
 
-        # Entity we wanted
-        entity = {'key': entity_key}
-        if mon_caps:
-            entity.update({'caps mon': '"{0}"'.format(mon_caps)})
-        if osd_caps:
-            entity.update({'caps osd': '"{0}"'.format(osd_caps)})
-        if mds_caps:
-            entity.update({'caps mds': '"{0}"'.format(mds_caps)})
-
         # Export entity
         cmd = ['ceph']
 
@@ -203,6 +194,18 @@ def manage_entity(name,
 
         if data['retcode'] and data['retcode'] != errno.ENOENT:
             return _error(ret, '{0}'.format(data['stderr']))
+
+        # Entity existed
+        fentity = None
+
+        # Entity we wanted
+        entity = {'key': entity_key}
+        if mon_caps:
+            entity.update({'caps mon': '"{0}"'.format(mon_caps)})
+        if osd_caps:
+            entity.update({'caps osd': '"{0}"'.format(osd_caps)})
+        if mds_caps:
+            entity.update({'caps mds': '"{0}"'.format(mds_caps)})
 
         # Entity exists
         if not data['retcode']:
@@ -272,8 +275,6 @@ def manage_entity(name,
             if data['retcode']:
                 return _error(ret, '{0}'.format(data['stderr']))
 
-            ret['changes']['before'] = fentity
-
         # Entity does not exist or deleted by us
         data = manage_keyring(keyring, name, entity_key, mon_caps, osd_caps, mds_caps)
         if not data['result']:
@@ -299,6 +300,7 @@ def manage_entity(name,
         if data['retcode']:
             return _error(ret, '{0}'.format(data['stderr']))
 
+        ret['changes']['before'] = fentity
         ret['changes']['after'] = entity
 
         return ret
