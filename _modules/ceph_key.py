@@ -165,15 +165,14 @@ def manage_entity(name,
     cluster, conf = __salt__['ceph_mon.normalize'](cluster, conf)
 
     try:
-        # Create temp admin keyring
+        # Create temp admin keyring and keyring
         admin_keyring = utils.mkstemp()
+        keyring = utils.mkstemp()
 
         data = manage_keyring(admin_keyring, admin_name, admin_key)
 
         if not data['result']:
             return _error(ret, '{0}'.format(data['comment']))
-
-        keyring = utils.mkstemp()
 
         # Export entity
         cmd = ['ceph']

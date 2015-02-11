@@ -1,15 +1,16 @@
 {% from 'ceph/lookup.jinja' import ceph with context %}
 
-{% set cluster = ceph.cluster | default('') | trim | default('ceph', True) %}
+{% set cluster = ceph.cluster | default('ceph', True) %}
 {% set conf = '/etc/ceph/' + cluster + '.conf' %}
 
-{% set mon_id = ceph.mon.mon_id | default(grains['id']) %}
-{% set mon_addr = ceph.mon.mon_addr | default('') | trim %}
+{% set mon_id = ceph.mon.mon_id | default(grains['id'], True) %}
+{% set mon_addr = ceph.mon.mon_addr | default('', True) %}
 
-{% set mon_key = ceph.mon_key | default('') | trim %}
-{% set admin_key = ceph.admin_key | default('') | trim %}
-{% set bootstrap_osd_key = ceph.bootstrap_osd_key | default('') | trim %}
-{% set bootstrap_mds_key = ceph.bootstrap_mds_key | default('') | trim %}
+{% set auth_type = ceph.auth_type | default('cephx', True) %}
+{% set mon_key = ceph.mon_key | default('', True) %}
+{% set admin_key = ceph.admin_key | default('', True) %}
+{% set bootstrap_osd_key = ceph.bootstrap_osd_key | default('', True) %}
+{% set bootstrap_mds_key = ceph.bootstrap_mds_key | default('', True) %}
 
 include:
   - ceph.conf
@@ -17,6 +18,7 @@ include:
 ceph.mon.create:
   ceph_mon.present:
     - name: {{ mon_id }}
+    - auth_type: {{ auth_type }}
     - mon_key: {{ mon_key }}
     - mon_addr: {{ mon_addr }}
     - cluster: {{ cluster }}
@@ -32,6 +34,9 @@ ceph.mon.start:
     - require:
       - ceph_mon: ceph.mon.create
 
+{% if auth_type == 'cephx' %}
+
+{% if admin_key and mon_key %}
 ceph.client.admin.register:
   ceph_key.entity_present:
     - name: client.admin
@@ -45,7 +50,9 @@ ceph.client.admin.register:
     - conf: {{ conf }}
     - require:
       - ceph_mon: ceph.mon.start
+{% endif %}
 
+{% if bootstrap_osd_key and mon_key %}
 ceph.client.bootstrap-osd.register:
   ceph_key.entity_present:
     - name: client.bootstrap-osd
@@ -57,7 +64,9 @@ ceph.client.bootstrap-osd.register:
     - conf: {{ conf }}
     - require:
       - ceph_mon: ceph.mon.start
+{% endif %}
 
+{% if bootstrap_mds_key and mon_key %}
 ceph.client.bootstrap-mds.register:
   ceph_key.entity_present:
     - name: client.bootstrap-mds
@@ -69,3 +78,6 @@ ceph.client.bootstrap-mds.register:
     - conf: {{ conf }}
     - require:
       - ceph_mon: ceph.mon.start
+{% endif %}
+
+{% endif %}

@@ -22,11 +22,12 @@ def _error(ret, msg):
     return ret
 
 def present(name,
+            auth_type='none',
             mon_key='',
             mon_addr='',
             cluster=CEPH_CLUSTER,
             conf=CEPH_CONF):
-    return __salt__['ceph_mon.manage'](name, mon_key, mon_addr, cluster, conf)
+    return __salt__['ceph_mon.manage'](name, auth_type, mon_key, mon_addr, cluster, conf)
 
 def absent(name,
            cluster=CEPH_CLUSTER,

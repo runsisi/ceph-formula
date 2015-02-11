@@ -40,12 +40,14 @@ def _error(ret, msg):
 
 def _tag_file_content(cluster,
                       mon_id,
+                      auth_type,
                       mon_key,
                       mon_addr):
     lines = ['magic={0}'.format(TAG_FILE_MAGIC),
              'version={0}'.format(TAG_FILE_VERSION),
              'cluster={0}'.format(cluster),
              'mon_id={0}'.format(mon_id),
+             'auth_type={0}'.format(auth_type or 'None'),
              'mon_key={0}'.format(mon_key or 'None'),
              'mon_addr={0}'.format(mon_addr or 'None')]
 
@@ -78,13 +80,14 @@ def _mon_data(cluster,
 def _monfs_finalize(cluster,
                     conf,
                     mon_id,
+                    auth_type,
                     mon_key,
                     mon_addr):
     mon_data = _mon_data(cluster, conf, mon_id)
 
     file_path = '{0}/{1}'.format(mon_data, TAG_FILE_NAME)
 
-    content = _tag_file_content(cluster, mon_id, mon_key, mon_addr)
+    content = _tag_file_content(cluster, mon_id, auth_type, mon_key, mon_addr)
 
     try:
         __salt__['file.write'](file_path, args=content)
@@ -109,6 +112,7 @@ def normalize(cluster,
     return cluster, conf
 
 def manage_monfs(mon_id,
+                 auth_type='none',
                  mon_key='',
                  mon_addr='',
                  cluster=CEPH_CLUSTER,
@@ -141,7 +145,7 @@ def manage_monfs(mon_id,
             tag = '{0}/{1}'.format(mon_data, TAG_FILE_NAME)
 
             if __salt__['file.file_exists'](tag):
-                content = _tag_file_content(cluster, mon_id, mon_key, mon_addr)
+                content = _tag_file_content(cluster, mon_id, auth_type, mon_key, mon_addr)
 
                 if _file_content_cmp(tag, content):
                     return ret
@@ -155,11 +159,11 @@ def manage_monfs(mon_id,
         except (IOError, OSError) as e:
             return _error(ret, '{0}'.format(e))
 
-    keyring = ''
-
     try:
+        keyring = ''
+
         # Create temp mon keyring
-        if mon_key:
+        if auth_type == 'cephx' and mon_key:
             keyring = utils.mkstemp()
             data = __salt__['ceph_key.manage_keyring'](keyring,
                                                        'mon.', mon_key,
@@ -191,7 +195,7 @@ def manage_monfs(mon_id,
         utils.safe_rm(keyring)
 
     # Create a magic file to prevent the next try
-    if not _monfs_finalize(cluster, conf, mon_id, mon_key, mon_addr):
+    if not _monfs_finalize(cluster, conf, mon_id, auth_type, mon_key, mon_addr):
         return _error(ret, 'Create tag file failure')
 
     ret['changes']['tag'] = 'New tag file'
@@ -289,6 +293,7 @@ def remove_conf(mon_id,
     return ret
 
 def manage(mon_id,
+           auth_type='none',
            mon_key='',
            mon_addr='',
            cluster=CEPH_CLUSTER,
@@ -302,7 +307,7 @@ def manage(mon_id,
 
     cluster, conf = normalize(cluster, conf)
 
-    data = manage_monfs(mon_id, mon_key, mon_addr, cluster, conf)
+    data = manage_monfs(mon_id, auth_type, mon_key, mon_addr, cluster, conf)
 
     if not data['result']:
         return _error(ret, data['comment'])
