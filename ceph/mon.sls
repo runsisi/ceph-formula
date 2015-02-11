@@ -3,14 +3,14 @@
 {% set cluster = ceph.cluster | default('ceph', True) %}
 {% set conf = '/etc/ceph/' + cluster + '.conf' %}
 
-{% set mon_id = ceph.mon.mon_id | default(grains['id'], True) %}
-{% set mon_addr = ceph.mon.mon_addr | default('', True) %}
-
 {% set auth_type = ceph.auth_type | default('cephx', True) %}
 {% set mon_key = ceph.mon_key | default('', True) %}
 {% set admin_key = ceph.admin_key | default('', True) %}
 {% set bootstrap_osd_key = ceph.bootstrap_osd_key | default('', True) %}
 {% set bootstrap_mds_key = ceph.bootstrap_mds_key | default('', True) %}
+
+{% set mon_id = ceph.mon.mon_id | default(grains['id'], True) %}
+{% set mon_addr = ceph.mon.mon_addr | default('', True) %}
 
 include:
   - ceph.conf

@@ -1,29 +1,21 @@
 {% from 'ceph/lookup.jinja' import ceph with context %}
 
-{% set cluster = ceph.cluster | default('') | trim | default('ceph', True) %}
-{% set bootstrap_osd_key = ceph.bootstrap_osd_key %}
+{% set cluster = ceph.cluster | default('ceph', True) %}
+{% set conf = '/etc/ceph/' + cluster + '.conf' %}
+
+{% set auth_type = ceph.auth_type | default('cephx', True) %}
+{% set bootstrap_osd_key = ceph.bootstrap_osd_key | default('', True) %}
+
 {% set osds = ceph.osd.osds | default({}) %}
 
 include:
   - ceph.conf
 
 ceph.osd.keyring.create:
-  file.managed:
+  ceph_key.keyring_present:
     - name: /var/lib/ceph/bootstrap-osd/{{ cluster }}.keyring
-    - mode: 644
-    - replace: False
-    - require:
-      - ini: ceph.conf.setup
-  cmd.run:
-    - name: >
-        ceph-authtool /var/lib/ceph/bootstrap-osd/{{ cluster }}.keyring
-        --name client.bootstrap-osd --add-key {{ bootstrap_osd_key }}
-        --cap mon 'allow profile bootstrap-osd'
-    - unless: >
-        ceph-authtool /var/lib/ceph/bootstrap-osd/{{ cluster }}.keyring
-        --name client.bootstrap-osd --print-key | grep {{ bootstrap_osd_key }}
-    - require:
-      - file: ceph.osd.keyring.create
+    - entity_name: client.bootstrap-osd
+    - entity_key: {{ bootstrap_osd_key }}
 
 {% for osd in osds %}
 {% set data = osd['data'] %}
