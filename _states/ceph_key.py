@@ -37,22 +37,22 @@ def keyring_absent(name,
 def entity_present(name,
                    entity_key,
                    admin_name,
-                   admin_keyring,
+                   admin_key,
                    mon_caps=None,
                    osd_caps=None,
                    mds_caps=None,
                    cluster=CEPH_CLUSTER,
                    conf=CEPH_CONF):
     return __salt__['ceph_key.manage_entity'](name, entity_key,
-                                              admin_name, admin_keyring,
+                                              admin_name, admin_key,
                                               mon_caps, osd_caps, mds_caps,
                                               cluster, conf)
 
 def entity_absent(name,
                   admin_name,
-                  admin_keyring,
+                  admin_key,
                   cluster=CEPH_CLUSTER,
                   conf=CEPH_CONF):
     return __salt__['ceph_key.remove_entity'](name,
-                                              admin_name, admin_keyring,
+                                              admin_name, admin_key,
                                               cluster, conf)

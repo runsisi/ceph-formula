@@ -149,15 +149,12 @@ def remove_keyring(keyring,
 def manage_entity(name,
                   entity_key,
                   admin_name,
-                  admin_keyring,
+                  admin_key,
                   mon_caps=None,
                   osd_caps=None,
                   mds_caps=None,
                   cluster=CEPH_CLUSTER,
                   conf=CEPH_CONF):
-    admin_keyring = path.expanduser(admin_keyring)
-    admin_keyring = path.abspath(admin_keyring)
-
     ret = {
         'name': name,
         'result': True,
@@ -168,7 +165,15 @@ def manage_entity(name,
     cluster, conf = __salt__['ceph_mon.normalize'](cluster, conf)
 
     try:
-        tmp_keyring = utils.mkstemp()
+        # Create temp admin keyring
+        admin_keyring = utils.mkstemp()
+
+        data = manage_keyring(admin_keyring, admin_name, admin_key)
+
+        if not data['result']:
+            return _error(ret, '{0}'.format(data['comment']))
+
+        keyring = utils.mkstemp()
 
         # Entity we wanted
         entity = {'key': entity_key}
@@ -187,7 +192,7 @@ def manage_entity(name,
         cmd.append('--connect-timeout {0}'.format(CEPH_CONNECT_TIMEOUT))
         cmd.append('--name {0}'.format(admin_name))
         cmd.append('--keyring {0}'.format(admin_keyring))
-        cmd.append('--out-file {0}'.format(tmp_keyring))
+        cmd.append('--out-file {0}'.format(keyring))
         cmd.append('auth')
         cmd.append('export')
         cmd.append(name)
@@ -201,7 +206,7 @@ def manage_entity(name,
 
         # Entity exists
         if not data['retcode']:
-            fentity = __salt__['ini.get_section'](tmp_keyring, name)
+            fentity = __salt__['ini.get_section'](keyring, name)
 
             if not fentity:
                 return _error(ret, 'Read keyring failure')
@@ -270,7 +275,7 @@ def manage_entity(name,
             ret['changes']['before'] = fentity
 
         # Entity does not exist or deleted by us
-        data = manage_keyring(tmp_keyring, name, entity_key, mon_caps, osd_caps, mds_caps)
+        data = manage_keyring(keyring, name, entity_key, mon_caps, osd_caps, mds_caps)
         if not data['result']:
             return _error(ret, '{0}'.format(data['comment']))
 
@@ -282,7 +287,7 @@ def manage_entity(name,
         cmd.append('--connect-timeout {0}'.format(CEPH_CONNECT_TIMEOUT))
         cmd.append('--name {0}'.format(admin_name))
         cmd.append('--keyring {0}'.format(admin_keyring))
-        cmd.append('--in-file {0}'.format(tmp_keyring))
+        cmd.append('--in-file {0}'.format(keyring))
         cmd.append('auth')
         cmd.append('add')
         cmd.append(name)
@@ -298,16 +303,14 @@ def manage_entity(name,
 
         return ret
     finally:
-        utils.safe_rm(tmp_keyring)
+        utils.safe_rm(admin_keyring)
+        utils.safe_rm(keyring)
 
 def remove_entity(name,
                   admin_name,
-                  admin_keyring,
+                  admin_key,
                   cluster=CEPH_CLUSTER,
                   conf=CEPH_CONF):
-    admin_keyring = path.expanduser(admin_keyring)
-    admin_keyring = path.abspath(admin_keyring)
-
     ret = {
         'name': name,
         'result': True,
@@ -317,48 +320,59 @@ def remove_entity(name,
 
     cluster, conf = __salt__['ceph_mon.normalize'](cluster, conf)
 
-    # Check entity
-    cmd = ['ceph']
+    try:
+        # Create temp admin keyring
+        admin_keyring = utils.mkstemp()
 
-    cmd.append('--cluster {0}'.format(cluster))
-    cmd.append('--conf {0}'.format(conf))
-    cmd.append('--connect-timeout {0}'.format(CEPH_CONNECT_TIMEOUT))
-    cmd.append('--name {0}'.format(admin_name))
-    cmd.append('--keyring {0}'.format(admin_keyring))
-    cmd.append('auth')
-    cmd.append('get')
-    cmd.append(name)
+        data = manage_keyring(admin_keyring, admin_name, admin_key)
 
-    cmd = ' '.join(cmd)
+        if not data['result']:
+            return _error(ret, '{0}'.format(data['comment']))
 
-    data = __salt__['cmd.run_all'](cmd)
+        # Check entity
+        cmd = ['ceph']
 
-    if data['retcode'] == errno.ENOENT:
-        ret['comment'] = 'Entity does not exist, skip'
+        cmd.append('--cluster {0}'.format(cluster))
+        cmd.append('--conf {0}'.format(conf))
+        cmd.append('--connect-timeout {0}'.format(CEPH_CONNECT_TIMEOUT))
+        cmd.append('--name {0}'.format(admin_name))
+        cmd.append('--keyring {0}'.format(admin_keyring))
+        cmd.append('auth')
+        cmd.append('get')
+        cmd.append(name)
+
+        cmd = ' '.join(cmd)
+
+        data = __salt__['cmd.run_all'](cmd)
+
+        if data['retcode'] == errno.ENOENT:
+            ret['comment'] = 'Entity does not exist, skip'
+            return ret
+
+        if data['retcode']:
+            return _error(ret, '{0}'.format(data['stderr']))
+
+        # Remove the entity
+        cmd = ['ceph']
+
+        cmd.append('--cluster {0}'.format(cluster))
+        cmd.append('--conf {0}'.format(conf))
+        cmd.append('--connect-timeout {0}'.format(CEPH_CONNECT_TIMEOUT))
+        cmd.append('--name {0}'.format(admin_name))
+        cmd.append('--keyring {0}'.format(admin_keyring))
+        cmd.append('auth')
+        cmd.append('del')
+        cmd.append(name)
+
+        cmd = ' '.join(cmd)
+
+        data = __salt__['cmd.run_all'](cmd)
+
+        if data['retcode']:
+            return _error(ret, '{0}'.format(data['stderr']))
+
+        ret['changes'][name] = 'Removed'
+
         return ret
-
-    if data['retcode']:
-        return _error(ret, '{0}'.format(data['stderr']))
-
-    # Remove the entity
-    cmd = ['ceph']
-
-    cmd.append('--cluster {0}'.format(cluster))
-    cmd.append('--conf {0}'.format(conf))
-    cmd.append('--connect-timeout {0}'.format(CEPH_CONNECT_TIMEOUT))
-    cmd.append('--name {0}'.format(admin_name))
-    cmd.append('--keyring {0}'.format(admin_keyring))
-    cmd.append('auth')
-    cmd.append('del')
-    cmd.append(name)
-
-    cmd = ' '.join(cmd)
-
-    data = __salt__['cmd.run_all'](cmd)
-
-    if data['retcode']:
-        return _error(ret, '{0}'.format(data['stderr']))
-
-    ret['changes'][name] = 'Removed'
-
-    return ret
+    finally:
+        utils.safe_rm(admin_keyring)
