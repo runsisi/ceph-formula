@@ -1,25 +1,17 @@
 {% from 'ceph/lookup.jinja' import ceph with context %}
 
-{% set cluster = ceph.cluster | default('') | trim | default('ceph', True) %}
-{% set admin_key = ceph.admin_key %}
+{% set cluster = ceph.cluster | default('ceph', True) %}
+
+{% set auth_type = ceph.auth_type | default('cephx', True) %}
+{% set admin_key = ceph.admin_key | default('', True) %}
 
 include:
   - ceph.conf
 
+{% if auth_type == 'cephx' and admin_key %}
 ceph.client.keyring.create:
-  file.managed:
+  ceph_key.keyring_present:
     - name: /etc/ceph/{{ cluster }}.client.admin.keyring
-    - mode: 644
-    - replace: False
-    - require:
-      - ini: ceph.conf.setup
-  cmd.run:
-    - name: >
-        ceph-authtool /etc/ceph/{{ cluster }}.client.admin.keyring
-        --name client.admin --add-key {{ admin_key }}
-        --cap mon 'allow *' --cap osd 'allow *' --cap mds 'allow'
-    - unless: >
-        ceph-authtool /etc/ceph/{{ cluster }}.client.admin.keyring
-        --name client.admin --print-key | grep {{ admin_key }}
-    - require:
-      - file: ceph.client.keyring.create
+    - entity_name: client.admin
+    - entity_key: {{ admin_key }}
+{% endif %}

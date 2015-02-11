@@ -11,11 +11,13 @@
 include:
   - ceph.conf
 
+{% if auth_type == 'cephx' and bootstrap_osd_key %}
 ceph.osd.keyring.create:
   ceph_key.keyring_present:
     - name: /var/lib/ceph/bootstrap-osd/{{ cluster }}.keyring
     - entity_name: client.bootstrap-osd
     - entity_key: {{ bootstrap_osd_key }}
+{% endif %}
 
 {% for osd in osds %}
 {% set data = osd['data'] %}
