@@ -393,7 +393,7 @@ def stop(mon_id='',
 def restart(mon_id='',
             cluster=CEPH_CLUSTER,
             conf=CEPH_CONF):
-    cluster, conf = _normalize(cluster, conf)
+    cluster, conf = normalize(cluster, conf)
 
     cmd = ['/etc/init.d/ceph']
 

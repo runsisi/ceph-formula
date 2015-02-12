@@ -31,8 +31,9 @@ ceph.mon.start:
     - name: {{ mon_id }}
     - cluster: {{ cluster }}
     - conf: {{ conf }}
-    - require:
+    - watch:
       - ceph_mon: ceph.mon.create
+      - ini: ceph.conf.setup
 
 {% if auth_type == 'cephx' %}
 

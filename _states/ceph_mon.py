@@ -85,3 +85,29 @@ def dead(name,
     ret['changes'][name] = data['stdout']
 
     return ret
+
+def mod_watch(name,
+              sfun=None,
+              **kwargs):
+    ret = {
+        'name': name,
+        'result': True,
+        'comment': 'mon.{0} restarted'.format(name),
+        'changes': {}
+    }
+
+    if sfun != 'running':
+        return _error(ret, 'watch requisite is not '
+                           'implemented for {0}'.format(sfun))
+
+    cluster = kwargs['cluster']
+    conf = kwargs['conf']
+
+    data = __salt__['ceph_mon.restart'](name, cluster, conf)
+
+    if data['retcode']:
+        return _error(ret, data['stderr'])
+
+    ret['changes'][name] = data['stdout']
+
+    return ret
