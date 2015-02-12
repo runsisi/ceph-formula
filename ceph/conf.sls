@@ -1,22 +1,26 @@
 {% from 'ceph/lookup.jinja' import ceph with context %}
 
-{% set pkgs = ceph.pkg.pkgs | default({}) %}
-{% set cluster = ceph.cluster | default('') | trim | default('ceph', True) %}
-{% set auth_type = ceph.auth_type | default('') | trim | default('cephx', True) %}
+{% set cluster = ceph.cluster | default('ceph', True) %}
+{% set conf = '/etc/ceph/' + cluster + '.conf' %}
+
+{% set auth_type = ceph.auth_type | default('cephx', True) %}
+
 {% if auth_type == 'none' %}
 {% do ceph.conf.global.update({
     'auth_cluster_required': 'none',
     'auth_service_required': 'none',
     'auth_client_required': 'none' }) %}
 {% endif %}
-{% set conf = ceph.conf %}
+
+{% set pkgs = ceph.pkg.pkgs | default({}) %}
+{% set sections = ceph.conf %}
 
 include:
   - ceph.pkg
 
 ceph.conf.setup:
   file.managed:
-    - name: /etc/ceph/{{ cluster }}.conf
+    - name: {{ conf }}
     - makedirs: True
     - user: root
     - group: root
@@ -26,9 +30,9 @@ ceph.conf.setup:
       - pkg: ceph.pkg.{{ pkg }}.{{ ver }}.install
       {% endfor %}
   ini.sections_present:
-    - name: /etc/ceph/{{ cluster }}.conf
+    - name: {{ conf }}
     - sections:
-        {% for section, options in conf.iteritems() %}
+        {% for section, options in sections.iteritems() %}
         {% if not options %}
         {% continue %}
         {% endif %}
