@@ -3,7 +3,7 @@
 {% set cluster = ceph.cluster | default('ceph', True) %}
 {% set conf = '/etc/ceph/' + cluster + '.conf' %}
 
-{% set auth_type = ceph.auth_type | default('cephx', True) %}
+{% set auth_type = ceph.auth_type | default('none', True) %}
 
 {% if auth_type == 'none' %}
 {% do ceph.conf.global.update({

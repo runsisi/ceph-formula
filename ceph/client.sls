@@ -2,7 +2,7 @@
 
 {% set cluster = ceph.cluster | default('ceph', True) %}
 
-{% set auth_type = ceph.auth_type | default('cephx', True) %}
+{% set auth_type = ceph.auth_type | default('none', True) %}
 {% set admin_key = ceph.admin_key | default('', True) %}
 
 include:
