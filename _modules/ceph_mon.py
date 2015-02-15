@@ -256,13 +256,22 @@ def manage_conf(mon_id,
     if data == section[section_name]:
         return ret
 
+    ret['changes'][conf] = {}
+    ret['changes'][conf]['before'] = {section_name: data}
+
+    try:
+        if data:
+            __salt__['ini.remove_section'](conf, section_name)
+    except IOError as e:
+        return _error(ret, '{0}'.format(e))
+
     data = __salt__['ini.set_option'](conf, section)
 
     # This relies on implementation of 'ini' module
     if 'error' in data:
         return _error(ret, data['error'])
 
-    ret['changes'].update(data['changes'])
+    ret['changes'][conf]['after'] = section
 
     return ret
 
