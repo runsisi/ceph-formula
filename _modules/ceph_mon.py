@@ -61,8 +61,10 @@ def _file_content_cmp(file_path,
             if line.strip() != content[lineno] or lineno == len(content):
                 return False
             lineno += 1
+        if lineno:
+            return True
 
-    return True
+    return False
 
 def _mon_data(cluster,
               conf,
