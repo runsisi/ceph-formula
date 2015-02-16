@@ -5,7 +5,7 @@
 
 {% set auth_type = ceph.auth_type | default('none', True) %}
 
-{% if auth_type == 'none' %}
+{% if auth_type != 'cephx' %}
 {% do ceph.conf.global.update({
     'auth_cluster_required': 'none',
     'auth_service_required': 'none',
