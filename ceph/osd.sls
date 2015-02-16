@@ -6,7 +6,7 @@
 {% set auth_type = ceph.auth_type | default('none', True) %}
 {% set bootstrap_osd_key = ceph.bootstrap_osd_key | default('', True) %}
 
-{% set osds = ceph.osd.osds | default({}) %}
+{% set osds = ceph.osd.osds | default({}, True) %}
 
 include:
   - ceph.conf

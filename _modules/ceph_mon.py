@@ -334,9 +334,12 @@ def manage(mon_id,
 
     return ret
 
-def remove(mon_id,
+def remove(mon_id='',
            cluster=CEPH_CLUSTER,
            conf=CEPH_CONF):
+    if not mon_id:
+        mon_id = __grains__['id']
+
     ret = {
         'name': mon_id,
         'result': True,

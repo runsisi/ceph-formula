@@ -1,8 +1,8 @@
 {% from 'ceph/lookup.jinja' import ceph with context %}
 
-{% set manage_repo = ceph.repo.manage_repo | default(0) %}
-{% set repos = ceph.repo.repos | default({}) %}
-{% set pkgs = ceph.pkg.pkgs | default({}) %}
+{% set manage_repo = ceph.repo.manage_repo | default(0, True) %}
+{% set repos = ceph.repo.repos | default({}, True) %}
+{% set pkgs = ceph.pkg.pkgs | default({}, True) %}
 
 {% if manage_repo %}
 include:

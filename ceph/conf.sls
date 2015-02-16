@@ -12,7 +12,7 @@
     'auth_client_required': 'none' }) %}
 {% endif %}
 
-{% set pkgs = ceph.pkg.pkgs | default({}) %}
+{% set pkgs = ceph.pkg.pkgs | default({}, True) %}
 {% set sections = ceph.conf %}
 
 include:
@@ -25,10 +25,12 @@ ceph.conf.setup:
     - user: root
     - group: root
     - mode: 644
+    {% if pkgs %}
     - require:
       {% for pkg, ver in pkgs.iteritems() %}
       - pkg: ceph.pkg.{{ pkg }}.{{ ver }}.install
       {% endfor %}
+    {% endif %}
   ini.sections_present:
     - name: {{ conf }}
     - sections:
