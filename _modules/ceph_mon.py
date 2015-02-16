@@ -303,12 +303,15 @@ def remove_conf(mon_id,
 
     return ret
 
-def manage(mon_id,
+def manage(mon_id='',
            auth_type='none',
            mon_key='',
            mon_addr='',
            cluster=CEPH_CLUSTER,
            conf=CEPH_CONF):
+    if not mon_id:
+        mon_id = __grains__['id']
+
     ret = {
         'name': mon_id,
         'result': True,
