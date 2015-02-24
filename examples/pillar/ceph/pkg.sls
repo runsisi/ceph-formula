@@ -2,7 +2,7 @@
 ceph:
   pkg:
     pkgs:
-      ceph: 0.87-1{{ grains['oscodename'] }}
+      ceph: 0.87.1-1{{ grains['oscodename'] }}
     manage_repo: 1
 {% elif grains['os_family'] in ['RedHat'] %}
 {% if grains['osmajorrelease'] == '6' %}

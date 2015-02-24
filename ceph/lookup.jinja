@@ -51,7 +51,7 @@
 {% if grains['os_family'] in ['Debian',] %}
 {% do ceph.update({
     'pkg': {
-        'pkgs': {'ceph': '0.87-1' + grains['oscodename'],},
+        'pkgs': {'ceph': '0.87.1-1' + grains['oscodename'],},
     }
 }) %}
 {% elif grains['os_family'] in ['RedHat'] %}
