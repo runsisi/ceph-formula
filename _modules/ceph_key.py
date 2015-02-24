@@ -21,6 +21,7 @@ CEPH_CLUSTER = 'ceph'                   # Default cluster name
 CEPH_CONF = '/etc/ceph/ceph.conf'       # Default cluster conf file
 CEPH_CONNECT_TIMEOUT = 60               # 60 seconds
 
+
 def __virtual__():
     '''
     Only load if ceph package is installed.
@@ -31,10 +32,12 @@ def __virtual__():
         return __virtualname__
     return False
 
+
 def _error(ret, msg):
     ret['result'] = False
     ret['comment'] = msg
     return ret
+
 
 def manage_keyring(keyring,
                    entity_name,
@@ -118,6 +121,7 @@ def manage_keyring(keyring,
 
     return ret
 
+
 def remove_keyring(keyring,
                    name=''):
     # TODO: Support remove a single entity
@@ -145,6 +149,7 @@ def remove_keyring(keyring,
         return _error(ret, 'Remove keyring failure')
 
     return ret
+
 
 def manage_entity(name,
                   entity_key,
@@ -306,6 +311,7 @@ def manage_entity(name,
     finally:
         utils.safe_rm(admin_keyring)
         utils.safe_rm(keyring)
+
 
 def remove_entity(name,
                   admin_name,

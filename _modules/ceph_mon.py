@@ -22,6 +22,7 @@ TAG_FILE_NAME = 'sysvinit'
 TAG_FILE_VERSION = 'v0.1'
 TAG_FILE_MAGIC = '\xc3\xc3\xc8\xfd'
 
+
 def __virtual__():
     '''
     Only load if ceph package is installed.
@@ -33,10 +34,12 @@ def __virtual__():
         return __virtualname__
     return False
 
+
 def _error(ret, msg):
     ret['result'] = False
     ret['comment'] = msg
     return ret
+
 
 def _tag_file_content(cluster,
                       mon_id,
@@ -53,6 +56,7 @@ def _tag_file_content(cluster,
 
     return lines
 
+
 def _file_content_cmp(file_path,
                       content):
     with utils.flopen(file_path, 'r') as fcontent:
@@ -66,6 +70,7 @@ def _file_content_cmp(file_path,
 
     return False
 
+
 def _mon_data(cluster,
               conf,
               mon_id):
@@ -78,6 +83,7 @@ def _mon_data(cluster,
     cmd.append('mon_data')
 
     return __salt__['cmd.run_stdout'](' '.join(cmd))
+
 
 def _monfs_finalize(cluster,
                     conf,
@@ -98,6 +104,7 @@ def _monfs_finalize(cluster,
 
     return True
 
+
 def normalize(cluster,
               conf):
     cluster = cluster.strip()
@@ -112,6 +119,7 @@ def normalize(cluster,
         conf = '{0}/{1}.conf'.format('/etc/ceph', cluster)
 
     return cluster, conf
+
 
 def manage_monfs(mon_id,
                  auth_type='none',
@@ -204,6 +212,7 @@ def manage_monfs(mon_id,
 
     return ret
 
+
 def remove_monfs(mon_id,
                  cluster=CEPH_CLUSTER,
                  conf=CEPH_CONF):
@@ -231,6 +240,7 @@ def remove_monfs(mon_id,
         return _error(ret, 'Remove mon_data directory failure')
 
     return ret
+
 
 def manage_conf(mon_id,
                 mon_addr='',
@@ -277,6 +287,7 @@ def manage_conf(mon_id,
 
     return ret
 
+
 def remove_conf(mon_id,
                 cluster=CEPH_CLUSTER,
                 conf=CEPH_CONF):
@@ -302,6 +313,7 @@ def remove_conf(mon_id,
         ret['changes'][section_name] = 'Removed'
 
     return ret
+
 
 def manage(mon_id='',
            auth_type='none',
@@ -337,6 +349,7 @@ def manage(mon_id='',
 
     return ret
 
+
 def remove(mon_id='',
            cluster=CEPH_CLUSTER,
            conf=CEPH_CONF):
@@ -369,6 +382,7 @@ def remove(mon_id='',
 
     return ret
 
+
 def start(mon_id='',
           cluster=CEPH_CLUSTER,
           conf=CEPH_CONF):
@@ -387,6 +401,7 @@ def start(mon_id='',
     cmd = ' '.join(cmd)
 
     return __salt__['cmd.run_all'](cmd)
+
 
 def stop(mon_id='',
          cluster=CEPH_CLUSTER,
@@ -407,6 +422,7 @@ def stop(mon_id='',
 
     return __salt__['cmd.run_all'](cmd)
 
+
 def restart(mon_id='',
             cluster=CEPH_CLUSTER,
             conf=CEPH_CONF):
@@ -425,6 +441,7 @@ def restart(mon_id='',
     cmd = ' '.join(cmd)
 
     return __salt__['cmd.run_all'](cmd)
+
 
 def status(mon_id='',
            cluster=CEPH_CLUSTER,
