@@ -58,10 +58,10 @@ def _file_content_cmp(file_path,
     with utils.flopen(file_path, 'r') as fcontent:
         lineno = 0
         for line in fcontent:
-            if line.strip() != content[lineno] or lineno == len(content):
+            if lineno == len(content) or line.strip() != content[lineno]:
                 return False
             lineno += 1
-        if lineno:
+        if lineno == len(content):
             return True
 
     return False
