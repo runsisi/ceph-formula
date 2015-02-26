@@ -8,8 +8,11 @@ author: runsisi@hust.edu.cn
 from __future__ import absolute_import
 
 # Import python libs
+import struct
+import time
+import base64
 import errno
-from os import path
+from os import path, urandom
 
 # Import salt libs
 from salt import utils
@@ -37,6 +40,19 @@ def _error(ret, msg):
     ret['result'] = False
     ret['comment'] = msg
     return ret
+
+
+# Stolen from ceph-deploy :)
+def generate_key():
+    key = urandom(16)
+    header = struct.pack(
+        '<hiih',
+        1,                 # le16 type: CEPH_CRYPTO_AES
+        int(time.time()),  # le32 created: seconds
+        0,                 # le32 created: nanoseconds,
+        len(key),          # le16: len(key)
+    )
+    return base64.b64encode(header + key)
 
 
 def manage_keyring(keyring,
