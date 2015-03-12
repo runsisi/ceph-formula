@@ -15,7 +15,7 @@ ceph:
     repos:
       - name: ceph
         humanname: ceph
-        baseurl: http://ceph.com/rpm-giant/el{{ grains['osmajorrelease'] }}/$basearch
-        gpgcheck: 1
+        baseurl: http://10.118.202.154/rpm-giant/el{{ grains['osmajorrelease'] }}/$basearch
+        gpgcheck: 0
         gpgkey: https://ceph.com/git/?p=ceph.git;a=blob_plain;f=keys/release.asc
 {% endif %}

@@ -1,6 +1,4 @@
 ceph:
-  cluster: ceph
-  auth_type: cephx
   mon_key: AQAAA8FU2AnFEhAA/5cDGZk5PjFjUMy8q7+Csw==
   admin_key: AQAOA8FU0GaGKRAA6BW1dc/zwTcah70r6Ow1mg==
   bootstrap_osd_key: AQAcA8FU8LWzHhAAN7+cwxF7KJuf5vSo52fPsQ==
@@ -9,10 +7,7 @@ ceph:
   conf:
     global:
       fsid: cbc99ef9-fbc3-41ad-a726-47359f8d84b3
-      osd_pool_default_size: 2
-      osd_pool_default_min_size: 1
-      osd_crush_chooseleaf_type: 0
-      mon_initial_members: {{ grains['id'] }},
-      mon_host: {{ grains['ipv4'][0] }}:6789,
-    mon: {}
-    osd: {}
+      mon_initial_members: ceph-osd1.test,
+      mon_host: 192.168.133.10:6789,192.168.133.11:6789,192.168.133.12:6789,
+      public_network: 192.168.133.0/24
+      cluster_network: 192.168.134.0/24

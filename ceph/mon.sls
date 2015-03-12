@@ -1,7 +1,6 @@
 {% from 'ceph/lookup.jinja' import ceph with context %}
 
 {% set cluster = ceph.cluster | default('ceph', True) %}
-{% set conf = '/etc/ceph/' + cluster + '.conf' %}
 
 {% set auth_type = ceph.auth_type | default('none', True) %}
 {% set mon_key = ceph.mon_key | default('', True) %}
@@ -22,24 +21,28 @@ ceph.mon.create:
     - mon_key: {{ mon_key }}
     - mon_addr: {{ mon_addr }}
     - cluster: {{ cluster }}
-    - conf: {{ conf }}
     - require:
-      - ini: ceph.conf.setup
+      - ceph_conf: ceph.conf.setup
 
 ceph.mon.start:
   ceph_mon.running:
     - name: {{ mon_id }}
     - cluster: {{ cluster }}
-    - conf: {{ conf }}
     - watch:
       - ceph_mon: ceph.mon.create
-      - ini: ceph.conf.setup
+      - ceph_conf: ceph.conf.setup
+
+ceph.mon.enable:
+  service.enabled:
+    - name: ceph
+    - requre:
+      ceph_mon: ceph.mon.start
 
 {% if auth_type == 'cephx' %}
 
 {% if admin_key and mon_key %}
 ceph.client.admin.register:
-  ceph_key.entity_present:
+  ceph_key.auth_present:
     - name: client.admin
     - entity_key: {{ admin_key }}
     - admin_name: mon.
@@ -48,35 +51,32 @@ ceph.client.admin.register:
     - osd_caps: allow *
     - mds_caps: allow
     - cluster: {{ cluster }}
-    - conf: {{ conf }}
     - require:
       - ceph_mon: ceph.mon.start
 {% endif %}
 
 {% if bootstrap_osd_key and mon_key %}
 ceph.client.bootstrap-osd.register:
-  ceph_key.entity_present:
+  ceph_key.auth_present:
     - name: client.bootstrap-osd
     - entity_key: {{ bootstrap_osd_key }}
     - admin_name: mon.
     - admin_key: {{ mon_key }}
     - mon_caps: allow profile bootstrap-osd
     - cluster: {{ cluster }}
-    - conf: {{ conf }}
     - require:
       - ceph_mon: ceph.mon.start
 {% endif %}
 
 {% if bootstrap_mds_key and mon_key %}
 ceph.client.bootstrap-mds.register:
-  ceph_key.entity_present:
+  ceph_key.auth_present:
     - name: client.bootstrap-mds
     - entity_key: {{ bootstrap_mds_key }}
     - admin_name: mon.
     - admin_key: {{ mon_key }}
     - mon_caps: allow profile bootstrap-mds
     - cluster: {{ cluster }}
-    - conf: {{ conf }}
     - require:
       - ceph_mon: ceph.mon.start
 {% endif %}

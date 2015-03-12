@@ -1,63 +1,60 @@
 # -*- coding: utf-8 -*-
 '''
-Manage ceph keys.
+Manage ceph key.
 
-author: runsisi@hust.edu.cn
+author: runsisi AT hust.edu.cn
 '''
 
 __virtualname__ = 'ceph_key'
 
 CEPH_CLUSTER = 'ceph'                   # Default cluster name
-CEPH_CONF = '/etc/ceph/ceph.conf'       # Default cluster conf file
 
 
 def __virtual__():
     '''
-    Only load if the ceph_key module is available
+    Only load if the ceph_deploy module is available
     '''
-    return __virtualname__ if 'ceph_key.manage_keyring' in __salt__ else False
+    return __virtualname__ if 'ceph_deploy.keyring_manage' in __salt__ else False
 
 
 def keyring_present(name,
                     entity_name,
                     entity_key,
-                    mon_caps=None,
-                    osd_caps=None,
-                    mds_caps=None,
+                    mon_caps='',
+                    osd_caps='',
+                    mds_caps='',
                     user='root',
                     group='root',
                     mode='600'):
-    return __salt__['ceph_key.manage_keyring'](name,
-                                               entity_name, entity_key,
-                                               mon_caps, osd_caps, mds_caps,
-                                               user, group, mode)
+    return __salt__['ceph_deploy.keyring_manage'](name,
+                                                  entity_name, entity_key,
+                                                  mon_caps, osd_caps, mds_caps,
+                                                  user, group, mode)
 
 
 def keyring_absent(name,
                    entity_name=''):
-    return __salt__['ceph_key.remove_keyring'](name, entity_name)
+    return __salt__['ceph_deploy.keyring_unmanage'](name, entity_name)
 
 
-def entity_present(name,
-                   entity_key,
-                   admin_name,
-                   admin_key,
-                   mon_caps=None,
-                   osd_caps=None,
-                   mds_caps=None,
-                   cluster=CEPH_CLUSTER,
-                   conf=CEPH_CONF):
-    return __salt__['ceph_key.manage_entity'](name, entity_key,
-                                              admin_name, admin_key,
-                                              mon_caps, osd_caps, mds_caps,
-                                              cluster, conf)
+def auth_present(name,
+                 entity_key,
+                 admin_name,
+                 admin_key,
+                 mon_caps=None,
+                 osd_caps=None,
+                 mds_caps=None,
+                 cluster=CEPH_CLUSTER):
+    return __salt__['ceph_deploy.auth_manage'](name, entity_key,
+                                               admin_name, admin_key,
+                                               mon_caps, osd_caps, mds_caps,
+                                               cluster)
 
 
-def entity_absent(name,
-                  admin_name,
-                  admin_key,
-                  cluster=CEPH_CLUSTER,
-                  conf=CEPH_CONF):
-    return __salt__['ceph_key.remove_entity'](name,
-                                              admin_name, admin_key,
-                                              cluster, conf)
+def auth_absent(name,
+                admin_name,
+                admin_key,
+                cluster=CEPH_CLUSTER):
+    return __salt__['ceph_deploy.auth_unmanage'](name,
+                                                 admin_name, admin_key,
+                                                 cluster)

@@ -4,17 +4,17 @@ ceph:
     repo:
       cleanup: 0
       repos:
-        - name: deb http://mirrors.ustc.edu.cn/ubuntu {{ grains['oscodename'] }} main restricted universe multiverse
+        - name: deb http://10.118.202.154/ubuntu {{ grains['oscodename'] }} main restricted universe multiverse
           humanname: base
           dist: {{ grains['oscodename'] }}
           file: /etc/apt/sources.list
 
-        - name: deb http://mirrors.ustc.edu.cn/ubuntu {{ grains['oscodename'] }}-updates main restricted universe multiverse
+        - name: deb http://10.118.202.154/ubuntu {{ grains['oscodename'] }}-updates main restricted universe multiverse
           humanname: updates
           dist: {{ grains['oscodename'] }}-updates
           file: /etc/apt/sources.list
 
-        - name: deb http://mirrors.ustc.edu.cn/ubuntu {{ grains['oscodename'] }}-security main restricted universe multiverse
+        - name: deb http://10.118.202.154/ubuntu {{ grains['oscodename'] }}-security main restricted universe multiverse
           humanname: security
           dist: {{ grains['oscodename'] }}-security
           file: /etc/apt/sources.list
@@ -28,29 +28,29 @@ ceph:
 ceph:
   bootstrap:
     repo:
-      cleanup: 0
+      cleanup: 1
       repos:
         - name: base
           humanname: base
-          baseurl: http://mirrors.ustc.edu.cn/centos/{{ grains['osmajorrelease'] }}/os/$basearch
+          baseurl: http://10.118.202.154/centos/{{ grains['osmajorrelease'] }}/os/$basearch
           gpgcheck: 1
-          gpgkey: http://mirrors.ustc.edu.cn/centos/RPM-GPG-KEY-CentOS-{{ grains['osmajorrelease'] }}
+          gpgkey: http://10.118.202.154/centos/RPM-GPG-KEY-CentOS-{{ grains['osmajorrelease'] }}
 
         - name: extras
           humanname: extras
-          baseurl: http://mirrors.ustc.edu.cn/centos/{{ grains['osmajorrelease'] }}/extras/$basearch
+          baseurl: http://10.118.202.154/centos/{{ grains['osmajorrelease'] }}/extras/$basearch
           gpgcheck: 1
-          gpgkey: http://mirrors.ustc.edu.cn/centos/RPM-GPG-KEY-CentOS-{{ grains['osmajorrelease'] }}
+          gpgkey: http://10.118.202.154/centos/RPM-GPG-KEY-CentOS-{{ grains['osmajorrelease'] }}
 
         - name: updates
           humanname: updates
-          baseurl: http://mirrors.ustc.edu.cn/centos/{{ grains['osmajorrelease'] }}/updates/$basearch
+          baseurl: http://10.118.202.154/centos/{{ grains['osmajorrelease'] }}/updates/$basearch
           gpgcheck: 1
-          gpgkey: http://mirrors.ustc.edu.cn/centos/RPM-GPG-KEY-CentOS-{{ grains['osmajorrelease'] }}
+          gpgkey: http://10.118.202.154/centos/RPM-GPG-KEY-CentOS-{{ grains['osmajorrelease'] }}
 
         - name: epel
           humanname: epel
-          baseurl: http://mirrors.ustc.edu.cn/epel/{{ grains['osmajorrelease'] }}/$basearch
+          baseurl: http://10.118.202.154/epel/{{ grains['osmajorrelease'] }}/$basearch
           gpgcheck: 1
-          gpgkey: http://mirrors.ustc.edu.cn/epel/RPM-GPG-KEY-EPEL-{{ grains['osmajorrelease'] }}
+          gpgkey: http://10.118.202.154/epel/RPM-GPG-KEY-EPEL-{{ grains['osmajorrelease'] }}
 {% endif %}

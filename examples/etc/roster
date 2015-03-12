@@ -1,16 +1,12 @@
-brs17:
-  host: 10.118.202.17
+ceph0:
+  host: 192.168.133.10
   user: root
-  passwd: 123456
-brs98:
-  host: 10.118.202.98
+  passwd: vagrant
+ceph1:
+  host: 192.168.133.11
   user: root
-  passwd: 123456
-brs159:
-  host: 10.118.202.159
+  passwd: vagrant
+ceph2:
+  host: 192.168.133.12
   user: root
-  passwd: 123456
-brs182:
-  host: brs182
-  user: root
-  passwd: 123456
+  passwd: vagrant
