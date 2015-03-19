@@ -1586,8 +1586,10 @@ class _CephOsd(object):
 
                 if not os.path.exists(rjournal):
                     raise AssertionError('Kernel not sync with disk?')
+                
+                rjdev = _CephDev(rjournal, _CephDevType.PART)
 
-                (_, typecode, _) = _CephDev.get_part_info(rjournal)
+                (_, typecode, _) = rjdev.get_part_info()
 
                 if typecode != JOURNAL_UUID:
                     return dummy
