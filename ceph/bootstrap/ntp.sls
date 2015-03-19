@@ -2,9 +2,6 @@
 
 {% set ntp = bootstrap.ntp %}
 
-include:
-  - ceph.bootstrap.repo
-
 {% if grains['os_family'] == 'RedHat' %}
 {% if grains['osmajorrelease'] == '7' %}
 bootstrap.ntp.chronyd.stop:
