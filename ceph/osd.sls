@@ -23,10 +23,6 @@ ceph.osd.keyring.create:
 {% set journal = osd['journal'] | default('') %}
 
 ceph.osd.{{ data }}.create:
-  file.directory:
-    - name: {{ data }}
-    - makedirs: True
-    - unless: ! test -b {{ data }}
   ceph_osd.present:
     - name: {{ data }}
     - journal: {{ journal }}
