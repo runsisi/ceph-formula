@@ -1891,6 +1891,7 @@ class _CephOsd(object):
 
             # write signature
             self.__write_signature(path, self.__signature())
+            self._state == _CephOsdState.PREPARED
         finally:
             if rddev.is_part():
                 rddev.umount(path)
