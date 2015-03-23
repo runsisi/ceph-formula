@@ -2,8 +2,20 @@
 
 {% set ntp = bootstrap.ntp %}
 
-include:
-  - ceph.bootstrap.ntp
+{% if grains['os_family'] == 'RedHat' %}
+{% if grains['osmajorrelease'] == '7' %}
+bootstrap.ntp.chronyd.stop:
+  service.dead:
+    - name: chronyd
+    - enable: False
+    - require_in:
+      - pkg: bootstrap.ntp.pkg.install
+{% endif %}
+{% endif %}
+
+bootstrap.ntp.pkg.install:
+  pkg.installed:
+    - name: {{ ntp.pkg }}
 
 bootstrap.ntp.conf.setup:
   file.managed:
@@ -12,7 +24,12 @@ bootstrap.ntp.conf.setup:
     - template: jinja
     - context:
         ntp: {{ ntp }}
-    - require_in:
-      - service: bootstrap.ntp.start
     - require:
       - pkg: bootstrap.ntp.pkg.install
+
+bootstrap.ntp.start:
+  service.running:
+    - name: {{ ntp.svc }}
+    - enable: True
+    - watch:
+      - file: bootstrap.ntp.conf.setup

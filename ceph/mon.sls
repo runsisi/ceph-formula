@@ -29,7 +29,7 @@ ceph.service.enable:
     - name: ceph
     - enable: True
     - requre:
-      ceph_mon: ceph.mon.create
+      - ceph_mon: ceph.mon.create
     - watch:
       - ceph_conf: ceph.conf.setup
 
