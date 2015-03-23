@@ -24,24 +24,19 @@ ceph.mon.create:
     - require:
       - ceph_conf: ceph.conf.setup
 
-ceph.mon.start:
-  ceph_mon.running:
-    - name: {{ mon_id }}
-    - cluster: {{ cluster }}
-    - watch:
-      - ceph_mon: ceph.mon.create
-      - ceph_conf: ceph.conf.setup
-
-ceph.mon.enable:
-  service.enabled:
+ceph.service.enable:
+  service.running:
     - name: ceph
+    - enable: True
     - requre:
-      ceph_mon: ceph.mon.start
+      ceph_mon: ceph.mon.create
+    - watch:
+      - ceph_conf: ceph.conf.setup
 
 {% if auth_type == 'cephx' %}
 
-{% if admin_key and mon_key %}
-ceph.client.admin.register:
+{% if admin_key %}
+ceph.client.admin.auth:
   ceph_key.auth_present:
     - name: client.admin
     - entity_key: {{ admin_key }}
@@ -52,11 +47,19 @@ ceph.client.admin.register:
     - mds_caps: allow
     - cluster: {{ cluster }}
     - require:
-      - ceph_mon: ceph.mon.start
+      - service: ceph.service.enable
+
+ceph.client.admin.keyring.create:
+  ceph_key.keyring_present:
+    - name: /etc/ceph/{{ cluster }}.client.admin.keyring
+    - entity_name: client.admin
+    - entity_key: {{ admin_key }}
+    - require:
+      - ceph_key: ceph.client.admin.auth
 {% endif %}
 
-{% if bootstrap_osd_key and mon_key %}
-ceph.client.bootstrap-osd.register:
+{% if bootstrap_osd_key %}
+ceph.client.bootstrap-osd.auth:
   ceph_key.auth_present:
     - name: client.bootstrap-osd
     - entity_key: {{ bootstrap_osd_key }}
@@ -65,11 +68,11 @@ ceph.client.bootstrap-osd.register:
     - mon_caps: allow profile bootstrap-osd
     - cluster: {{ cluster }}
     - require:
-      - ceph_mon: ceph.mon.start
+      - ceph_key: ceph.client.admin.keyring.create
 {% endif %}
 
-{% if bootstrap_mds_key and mon_key %}
-ceph.client.bootstrap-mds.register:
+{% if bootstrap_mds_key %}
+ceph.client.bootstrap-mds.auth:
   ceph_key.auth_present:
     - name: client.bootstrap-mds
     - entity_key: {{ bootstrap_mds_key }}
@@ -78,7 +81,7 @@ ceph.client.bootstrap-mds.register:
     - mon_caps: allow profile bootstrap-mds
     - cluster: {{ cluster }}
     - require:
-      - ceph_mon: ceph.mon.start
+      - ceph_key: ceph.client.admin.keyring.create
 {% endif %}
 
 {% endif %}

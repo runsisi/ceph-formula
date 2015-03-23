@@ -1453,7 +1453,7 @@ class _CephOsd(object):
         self.data = data
         self.journal = journal
         self.dtype = ddev.type
-        self.jtype = jdev.type if jdev else (ddev.type if journal else None)
+        self.jtype = jdev.type if jdev else (ddev.type if journal else '')
         self.ddev = ddev
         self.jdev = jdev
 
@@ -1586,7 +1586,7 @@ class _CephOsd(object):
 
                 if not os.path.exists(rjournal):
                     raise AssertionError('Kernel not sync with disk?')
-                
+
                 rjdev = _CephDev(rjournal, _CephDevType.PART)
 
                 (_, typecode, _) = rjdev.get_part_info()
@@ -1891,7 +1891,7 @@ class _CephOsd(object):
 
             # write signature
             self.__write_signature(path, self.__signature())
-            self._state == _CephOsdState.PREPARED
+            self._state = _CephOsdState.PREPARED
         finally:
             if rddev.is_part():
                 rddev.umount(path)
