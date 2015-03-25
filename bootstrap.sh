@@ -2,41 +2,68 @@
 
 set -e
 
+ROOTDIR=/opt/clove/deploy
+
 # prepare salt-master configuration and restart salt-master
 
 echo preparing...
 
-mkdir -p /srv/{salt,pillar}
+# prepare directories
+
 mkdir -p /etc/salt/master.d
+mkdir -p $ROOTDIR/{salt,pillar}
 
-rm -rf /srv/salt/reactor
-rm -rf /etc/salt/master.d/reactor.conf
+# remove master configure file
 
+rm -rf /etc/salt/master.d/clove.conf
 
-rm -rf /srv/salt/ceph
-rm -rf /srv/salt/_modules
-rm -rf /srv/salt/_states
+# remove states
 
-rm -rf /srv/pillar/ceph
-rm -rf /srv/pillar/top.sls
+rm -rf $ROOTDIR/salt/reactor
+rm -rf $ROOTDIR/salt/ceph
+rm -rf $ROOTDIR/salt/_modules
+rm -rf $ROOTDIR/salt/_states
 
+# remove pillars
 
-cp -r $PWD/reactor/ /srv/salt/
-cp $PWD/etc/reactor.conf /etc/salt/master.d/
+rm -rf $ROOTDIR/pillar/ceph
+rm -rf $ROOTDIR/pillar/top.sls
 
-cp -r $PWD/ceph/ /srv/salt/
-cp -r $PWD/_modules/ /srv/salt/
-cp -r $PWD/_states/ /srv/salt/
+# copy master configure file
 
-cp -r $PWD/examples/pillar/ceph/ /srv/pillar/
-cp $PWD/examples/pillar/top.sls /srv/pillar/
+cp $PWD/etc/clove.conf /etc/salt/master.d/
 
+# copy states
+
+cp -r $PWD/reactor/ $ROOTDIR/salt/
+cp -r $PWD/ceph/ $ROOTDIR/salt/
+cp -r $PWD/_modules/ $ROOTDIR/salt/
+cp -r $PWD/_states/ $ROOTDIR/salt/
+
+# copy pillars
+
+cp -r $PWD/examples/pillar/ceph/ $ROOTDIR/pillar/
+cp $PWD/examples/pillar/top.sls $ROOTDIR/pillar/
+
+# start salt-master service
+
+if which systemctl > /dev/null 2>&1; then
+systemctl enable salt-master
+systemctl restart salt-master
+else
+chkconfig salt-master on
 service salt-master restart
+fi
 
 echo
 echo OK!
 
-echo
-echo NOTE: Define \'/etc/salt/roster\' if you want to use salt-ssh,
-echo '      'refer to \'examples/etc/roster\' as an example.
+printf '
+1) Define "/etc/salt/roster" if you want to use salt-ssh, refer
+   to "examples/etc/roster" as an example.
+2) Please modify pillar data under "%s"
+   to fit your need.\n
+' $ROOTDIR/pillar/ceph/
+
+
 

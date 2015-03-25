@@ -1,5 +1,21 @@
 ceph:
   bootstrap:
+    # salt parameters
+    salt:
+      minion:
+        master_ip: 10.118.202.17
+        pkgs:
+          salt-minion: 2014.7.0-3.el7
+
+    # NTP parameters
+    ntp:
+      pkg: ntp
+      svc: ntpd
+      cfile: /etc/ntp.conf
+      srvs:
+        - 192.168.133.10
+
+    # system basic yum repositories
     repo:
       cleanup: 1
       repos:

@@ -22,7 +22,7 @@ ceph.bootstrap.minion.pkg.{{ pkg }}.{{ ver }}.install:
 
 ceph.bootstrap.minion.setup:
   file.managed:
-    - name: /etc/salt/minion.d/master.conf
+    - name: /etc/salt/minion.d/clove.conf
     - makedirs: True
     - contents: 'master: {{ master_ip }}'
 
