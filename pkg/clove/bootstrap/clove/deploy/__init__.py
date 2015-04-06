@@ -33,9 +33,10 @@ def setup_deploy(clove_dir):
 
     timeout = float(timeout)
     pkgs = pkgs.split(',')
+
     if not pkgs[-1]:
         pkgs = pkgs[:-1]
-    LOG.info('Got package list to install: {}'.format(pkgs))
+    LOG.info('Got package list to install: {0}'.format(pkgs))
 
     LOG.debug('Backup yum repo')
     backup_repo()
@@ -48,9 +49,9 @@ def setup_deploy(clove_dir):
             LOG.warning('Call setup_repo failed')
             return False
 
-        LOG.debug('Install clove pkgs: {}'.format(pkgs))
+        LOG.debug('Install clove pkgs: {0}'.format(pkgs))
         if not install_pkgs(pkgs, timeout):
-            LOG.warning('Call install_pkgs failed, pkgs: {}'
+            LOG.warning('Call install_pkgs failed, pkgs: {0}'
                         .format(pkgs))
             return False
     finally:
@@ -83,7 +84,7 @@ def setup_formula(clove_dir):
     try:
         check_run(cmd)
     except CommandExecutionError as e:
-        LOG.warning('Execute ceph-formula installer failed: {}'.format(e))
+        LOG.warning('Execute ceph-formula installer failed: {0}'.format(e))
         return False
 
     return True
@@ -97,8 +98,6 @@ def setup_salt():
     # TODO: open ports instead of shutdown firewall
 
     if distro.distro in ('redhat', 'centos'):
-
-
         if distro.major == '7':
             try:
                 # TODO: check 'iptables'?
@@ -157,7 +156,7 @@ def setup_salt():
                 LOG.warning(e)
                 return False
     else:
-        LOG.error('Not supported distro: {}'.format(distro.distro))
+        LOG.error('Not supported distro: {0}'.format(distro.distro))
         return False
 
     return True

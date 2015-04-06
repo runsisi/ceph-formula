@@ -18,13 +18,13 @@ def setup_repo(pkgs_dir):
     repo = {
         'reponame': 'clove',
         'name': 'Packages for clove',
-        'baseurl': 'file://{}'.format(pkgs_dir),
+        'baseurl': 'file://{0}'.format(pkgs_dir),
         'gpgcheck': 0
     }
 
     content = yum_repo(**repo)
 
-    LOG.info('Write repo content: {}'.format(content))
+    LOG.info('Write repo content: {0}'.format(content))
 
     try:
         with open(path, 'wb') as fobj:
@@ -34,9 +34,9 @@ def setup_repo(pkgs_dir):
         LOG.warning(e)
         return ''
 
-    repopath = '/etc/yum.repos.d/{}'.format('clove.repo')
+    repopath = '/etc/yum.repos.d/{0}'.format('clove.repo')
 
-    LOG.debug('Create repo file: {}'.format(repopath))
+    LOG.debug('Create repo file: {0}'.format(repopath))
 
     try:
         os.rename(path, repopath)
@@ -61,7 +61,7 @@ def install_pkgs(pkgs, timeout):
 
     run(cmd)
 
-    LOG.debug('Install pkgs: {}'.format(pkgs))
+    LOG.debug('Install pkgs: {0}'.format(pkgs))
 
     cmd = ['yum']
     cmd.append('-y')

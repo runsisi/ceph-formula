@@ -52,6 +52,66 @@ logdebug() {
     printf "${BLACK}[DEBUG] ${NORMAL}%s\n" "$msg"
 }
 
+lower() {
+    echo "$1" | sed 'y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'
+}
+
+detect_platform() {
+    kernel=$(lower $(uname -s))
+
+    if [ $kernel = 'linux' ]; then
+        __PLATFORM='linux'
+    elif ! case $kernel in cygwin*) false;; esac; then
+        __PLATFORM='cygwin'
+    elif [ $kernel = 'freebsd' ]; then
+        __PLATFORM='freebsd'
+    else
+        __PLATFORM=''
+    fi
+
+    readonly __PLATFORM
+}
+
+# TODO: more distros
+detect_distro() {
+    __DISTROFAMILY=''
+    __DISTRONAME=''
+    __DISTROCODE=''
+    __DISTROMAJORVER=''
+
+    if [ -f /etc/redhat-release ]; then
+        __DISTROFAMILY='redhat'
+        __DISTRONAME=$(cat /etc/redhat-release |sed s/\ release.*//)
+        __DISTROCODE=$(cat /etc/redhat-release | sed s/.*\(// | sed s/\)//)
+        __DISTROMAJORVER=$(cat /etc/redhat-release | sed s/.*release\ // | sed s/\ .*// | cut -d '.' -f 1)
+    elif [ -f /etc/debian_version ] ; then
+        __DISTROFAMILY='debian'
+        if [ -f /etc/lsb-release ] ; then
+            __DISTRONAME=$(cat /etc/lsb-release | grep '^DISTRIB_ID' | awk -F=  '{print $2}')
+            __DISTROCODE=$(cat /etc/lsb-release | grep '^DISTRIB_CODENAME' | awk -F=  '{print $2}')
+            __DISTROMAJORVER=$(cat /etc/lsb-release | grep '^DISTRIB_RELEASE' | awk -F=  '{print $2}' | cut -d '.' -f 1)
+        fi
+    fi
+
+    __DISTRONAME=$(lower $__DISTRONAME)
+    __DISTROCODE=$(lower $__DISTROCODE)
+
+    if ! case __DISTRONAME in redhat* | 'red hat'*) false;; esac; then
+        __DISTRONAME='redhat'
+    elif ! case __DISTRONAME in scientific*) false;; esac; then
+        __DISTRONAME='scientific'
+    elif ! case __DISTRONAME in suse* | opensuse*) false;; esac; then
+        __DISTRONAME='suse'
+    elif ! case $__DISTRO in cenos*) false;; esac; then
+        __DISTRO='centos'
+    fi
+
+    readonly __DISTROFAMILY
+    readonly __DISTRONAME
+    readonly __DISTROCODE
+    readonly __DISTROMAJORVER
+}
+
 query() {
     printf 'Preparing to install clove_deploy:\n'
     printf '   1) I am ready, please go\n'
@@ -63,7 +123,7 @@ query() {
             1)
             ;;
             2)
-            exit -1
+            exit 1
             ;;
             *)
             ans=
@@ -71,6 +131,18 @@ query() {
         esac
     done
 }
+
+detect_platform
+
+if [ $__PLATFORM != 'linux' ]; then
+    logerror 'We only support GNU/Linux!'
+fi
+
+detect_distro
+
+if [ $__DISTROFAMILY != 'redhat' ]; then
+    logerror 'We only support RedHat family!'
+fi
 
 query
 
@@ -112,12 +184,5 @@ if ! python $tmpdir/$BOOTSTRAP $@; then
 fi
 
 loginfo "Installation has finished, everything's OK!"
-
-printf '
-1) Define "/etc/salt/roster" if you want to use salt-ssh, refer
-   to "/etc/clove/examples/etc/roster" as an example.
-2) Please modify pillar data under "/opt/clove/deploy/pillar/ceph/"
-   to fit your need.\n
-'
 
 exit 0

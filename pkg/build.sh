@@ -6,11 +6,12 @@ set -e
 
 CWD=$(cd -P $(dirname $0) && pwd -P)
 
-source $CWD/util.sh
+. $CWD/util.sh
 
 trap 'cleanup' EXIT
 
 cleanup() {
+    rm -rf $tmpdir
     rm -rf $tmpxz
     rm -rf $tmpbin
 }
@@ -56,11 +57,17 @@ if ! which xz > /dev/null 2>&1; then
     logerror 'No xz compression tool found'
 fi
 
+# collect clove
+
+tmpdir=$(mktemp --directory --suffix=.clove)
+
+cp -rf $CWD/clove   $tmpdir
+
 # collect ceph-formula
 
-formula_dir=$CWD/clove/ceph-formula
-
+formula_dir=$tmpdir/clove/ceph-formula
 mkdir -p $formula_dir
+
 cp -rf $CWD/../_modules     $formula_dir
 cp -rf $CWD/../_states      $formula_dir
 cp -rf $CWD/../ceph         $formula_dir
@@ -72,7 +79,7 @@ cp -ff $CWD/../install.sh   $formula_dir
 tmpxz=$(mktemp --suffix=.clove)
 
 loginfo 'Create .xz compressed file'
-cd $CWD
+cd $tmpdir
 if ! tar -cJf $tmpxz clove/ > /dev/null; then
     logerror 'Failed to compress'
 fi

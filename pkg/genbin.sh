@@ -6,7 +6,7 @@ set -e
 
 CWD=$(cd -P $(dirname $0) && pwd -P)
 
-source $CWD/util.sh
+. $CWD/util.sh
 
 BIN_SUFFIX='.bin'
 

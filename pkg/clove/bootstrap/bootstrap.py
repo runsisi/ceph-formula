@@ -14,6 +14,7 @@ import argparse
 BOOTSTRAP_DIR = os.path.dirname(__file__)
 sys.path.append(BOOTSTRAP_DIR)
 import clove.util.log as clovelog
+import clove.util.distro as clovedistro
 import clove.deploy as clovedeploy
 
 LOG = logging.getLogger('bootstrap')
@@ -29,6 +30,9 @@ def main():
         3: logging.INFO,
         4: logging.DEBUG
     }
+
+    if args.verbose is None:
+        args.verbose = 1
 
     verbose = min(args.verbose, len(levels) - 1)
     level = levels[verbose]
@@ -53,8 +57,10 @@ def main():
 
     LOG.debug('Setup clove deploy')
     if not clovedeploy.setup_deploy(clove_dir):
-        LOG.error('Call setup_deploy failed')
+        LOG.fatal('Call setup_deploy failed')
         return 1
+
+    post_install()
 
     return 0
 
@@ -63,11 +69,21 @@ def parse_args():
     parser = argparse.ArgumentParser('clove-deploy')
     parser.add_argument(
         '-v', '--verbose',
-        action='count', default=0,
+        action='count', default=None,
         help='be more verbose'
     )
 
     return parser.parse_args()
+
+
+def post_install():
+    notes = '''
+1) Define "/etc/salt/roster" if you want to use salt-ssh, refer
+   to "/etc/clove/examples/etc/roster" as an example.
+2) Please modify pillar data under "/opt/clove/deploy/pillar/ceph/"
+   to fit your need.
+   '''
+    print(notes)
 
 
 if __name__ == '__main__':
