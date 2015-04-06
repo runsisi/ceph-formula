@@ -102,7 +102,7 @@ detect_distro() {
         __DISTRONAME='scientific'
     elif ! case __DISTRONAME in suse* | opensuse*) false;; esac; then
         __DISTRONAME='suse'
-    elif ! case $__DISTRO in cenos*) false;; esac; then
+    elif ! case $__DISTRO in centos*) false;; esac; then
         __DISTRO='centos'
     fi
 

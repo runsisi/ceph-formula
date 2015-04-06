@@ -113,7 +113,7 @@ def _run(cmd, **kwargs):
     :return: (code, stdout, stderr) 3-tuples.
     '''
     if not isinstance(cmd, list):
-        raise ValueError('cmd: {} must be a list'.format(cmd))
+        raise ValueError('cmd: {0} must be a list'.format(cmd))
 
     if 'timeout' not in kwargs:
         kwargs['timeout'] = COMMAND_TIMEOUT
@@ -156,7 +156,7 @@ class _CephTag(object):
         super(_CephTag, self).__init__()
 
         if not os.path.isabs(path):
-            raise ValueError('tag path: {} is not an abs path'.format(path))
+            raise ValueError('tag path: {0} is not an abs path'.format(path))
 
         self.path = path
 
@@ -186,14 +186,14 @@ class _CephOneLineTag(_CephTag):
         # safe for empty line
         if line[-1:] != '\n':
             raise AssertionError(
-                'content of tag: {} does not end with \'\\n\''.format(self.path)
+                'content of tag: {0} does not end with \'\\n\''.format(self.path)
             )
 
         line = line[:-1]
 
         if '\n' in line:
             raise AssertionError(
-                'content of tag: {} has multiple lines'.format(self.path)
+                'content of tag: {0} has multiple lines'.format(self.path)
             )
 
         return line
@@ -206,7 +206,7 @@ class _CephOneLineTag(_CephTag):
         '''
         if '\n' in line:
             raise ValueError(
-                'content: {} write to tag must not contain \'\\n\''
+                'content: {0} write to tag must not contain \'\\n\''
                 .format(line)
             )
 
@@ -244,7 +244,7 @@ class _CephMultiLineTag(_CephTag):
                 line = fobj.read()
                 if line[-1:] != '\n':
                     raise AssertionError(
-                        'content of tag: {} does not end with \'\\n\''
+                        'content of tag: {0} does not end with \'\\n\''
                         .format(self.path)
                     )
                 line = line[:-1]
@@ -268,7 +268,7 @@ class _CephMultiLineTag(_CephTag):
         for line in lines:
             if '\n' in line:
                 raise ValueError(
-                    'content: {} write to tag must not contain \'\\n\''
+                    'content: {0} write to tag must not contain \'\\n\''
                     .format(line)
                 )
 
@@ -313,16 +313,16 @@ class _CephConf(object):
 
         if cluster:
             if '.' in cluster:
-                raise ValueError('cluster name: {} contains dot'.format(cluster))
+                raise ValueError('cluster name: {0} contains dot'.format(cluster))
 
         if conf:
             if not os.path.isabs(conf):
                 raise ValueError(
-                    'ceph conf: {} is not an abs path'.format(conf)
+                    'ceph conf: {0} is not an abs path'.format(conf)
                 )
             if not conf.endswith('.conf'):
                 raise ValueError(
-                    'ceph conf: {} does not end with .conf'.format(conf)
+                    'ceph conf: {0} does not end with .conf'.format(conf)
                 )
 
         if not cluster and not conf:
@@ -331,7 +331,7 @@ class _CephConf(object):
         elif not cluster:
             cluster = conf.split('/')[-1].split('.')[0]
         elif not conf:
-            conf = '/etc/ceph/{}.conf'.format(cluster)
+            conf = '/etc/ceph/{0}.conf'.format(cluster)
 
         return cluster, conf
 
@@ -356,18 +356,18 @@ class _CephConf(object):
         '''
         # To get the value from the config file
         cmd = ['ceph-conf']
-        cmd.append('--cluster {}'.format(self.cluster))
-        cmd.append('--conf {}'.format(self.conf))
+        cmd.append('--cluster {0}'.format(self.cluster))
+        cmd.append('--conf {0}'.format(self.conf))
         if name:
-            cmd.append('--name {}'.format(name))
-        cmd.append('--lookup {}'.format(key))
+            cmd.append('--name {0}'.format(name))
+        cmd.append('--lookup {0}'.format(key))
 
         (code, stdout, stderr) = _run(cmd)
 
         if not code:
             value = stdout.strip().split('\n', 1)
             if len(value) != 1:
-                raise AssertionError('Weird ceph-conf output: {}'.format(value))
+                raise AssertionError('Weird ceph-conf output: {0}'.format(value))
             value = value[0]
             if not value:
                 return None
@@ -378,11 +378,11 @@ class _CephConf(object):
 
         # Fallback to get the value if the daemon knows
         cmd = ['ceph-conf']
-        cmd.append('--cluster {}'.format(self.cluster))
-        cmd.append('--conf {}'.format(self.conf))
+        cmd.append('--cluster {0}'.format(self.cluster))
+        cmd.append('--conf {0}'.format(self.conf))
         if name:
-            cmd.append('--name {}'.format(name))
-        cmd.append('--show-config-value {}'.format(key))
+            cmd.append('--name {0}'.format(name))
+        cmd.append('--show-config-value {0}'.format(key))
 
         # Unfortunately as shown in ceph/src/common/config.cc --show-config-value
         # only has two exit codes: 0 or 1, and 1 are used for both option does not
@@ -392,7 +392,7 @@ class _CephConf(object):
         if not code:
             value = stdout.strip().split('\n', 1)
             if len(value) != 1:
-                raise AssertionError('Weird ceph-conf output: {}'.format(value))
+                raise AssertionError('Weird ceph-conf output: {0}'.format(value))
             value = value[0]
             if not value:
                 return None
@@ -415,13 +415,13 @@ class _CephDev(object):
         if dev is None:
             raise ValueError('Device path must not be None')
         if not os.path.isabs(dev):
-            raise ValueError('Device: {} is not an abs path'.format(dev))
+            raise ValueError('Device: {0} is not an abs path'.format(dev))
         if not os.path.exists(dev):
-            raise ValueError('Device: {} does not exist'.format(dev))
+            raise ValueError('Device: {0} does not exist'.format(dev))
 
         if dtype not in (_CephDevType.DISK, _CephDevType.PART, _CephDevType.LV,
                          _CephDevType.DIR, _CephDevType.FILE):
-            raise ValueError('Not supported type: {}'.format(dtype))
+            raise ValueError('Not supported type: {0}'.format(dtype))
 
         self.odev = dev
         self.dev = os.path.realpath(dev)
@@ -438,9 +438,9 @@ class _CephDev(object):
         if dev is None:
             raise ValueError('Device path must not be None')
         if not os.path.isabs(dev):
-            raise ValueError('Device: {} is not an abs path'.format(dev))
+            raise ValueError('Device: {0} is not an abs path'.format(dev))
         if not os.path.exists(dev):
-            raise ValueError('Device: {} does not exist'.format(dev))
+            raise ValueError('Device: {0} does not exist'.format(dev))
 
         dev = os.path.realpath(dev)
 
@@ -672,7 +672,7 @@ class _CephDev(object):
 
             return part_type
 
-        raise AssertionError('No disk label found on disk: {}'.format(self.dev))
+        raise AssertionError('No disk label found on disk: {0}'.format(self.dev))
 
     def get_part_fs(self):
         '''
@@ -726,7 +726,7 @@ class _CephDev(object):
         (guid, typecode, name) = (None, None, None)
 
         cmd = ['sgdisk']
-        cmd.append('--info={}'.format(num))
+        cmd.append('--info={0}'.format(num))
         cmd.append(disk)
 
         # sgdisk will not fail even if part does not exist
@@ -883,7 +883,7 @@ class _CephDev(object):
         if size:
             part = '--new={num}:0:+{size}M'.format(num=num, size=size)
         else:
-            part = '--largest-new={}'.format(num)
+            part = '--largest-new={0}'.format(num)
 
         cmd = ['sgdisk']
         cmd.append(part)
@@ -906,7 +906,7 @@ class _CephDev(object):
             raise AssertionError('Not a disk')
 
         cmd = ['sgdisk']
-        cmd.append('--delete={}'.format(num))
+        cmd.append('--delete={0}'.format(num))
         cmd.append('--')
         cmd.append(self.dev)
 
@@ -929,7 +929,7 @@ class _CephDev(object):
             options.append('-f')
 
         cmd = ['mkfs']
-        cmd.append('-t {}'.format(fstype))
+        cmd.append('-t {0}'.format(fstype))
         cmd.extend(options)
         cmd.append('--')
         cmd.append(self.dev)
@@ -1000,9 +1000,9 @@ class _CephDev(object):
             raise AssertionError('Not a partition or LVM2 logical volume')
 
         cmd = ['mount']
-        cmd.append('-t {}'.format(fstype))
+        cmd.append('-t {0}'.format(fstype))
         if options.strip():
-            cmd.append('-o {}'.format(options))
+            cmd.append('-o {0}'.format(options))
         cmd.append('--')
         cmd.append(self.dev)
         cmd.append(path)
@@ -1159,7 +1159,7 @@ class _CephDaemon(object):
         super(_CephDaemon, self).__init__()
 
         if etype not in ['mon', 'osd', 'mds', 'client']:
-            raise ValueError('Invalid daemon type: {}'.format(etype))
+            raise ValueError('Invalid daemon type: {0}'.format(etype))
 
         cfg = _CephConf(cluster)
 
@@ -1175,8 +1175,8 @@ class _CephDaemon(object):
         cfg = _CephConf(cluster)
 
         cmd = ['/etc/init.d/ceph']
-        cmd.append('--cluster {}'.format(cfg.cluster))
-        cmd.append('--conf {}'.format(cfg.conf))
+        cmd.append('--cluster {0}'.format(cfg.cluster))
+        cmd.append('--conf {0}'.format(cfg.conf))
         cmd.append('start')
         cmd.append('mon')
 
@@ -1187,8 +1187,8 @@ class _CephDaemon(object):
         cfg = _CephConf(cluster)
 
         cmd = ['/etc/init.d/ceph']
-        cmd.append('--cluster {}'.format(cfg.cluster))
-        cmd.append('--conf {}'.format(cfg.conf))
+        cmd.append('--cluster {0}'.format(cfg.cluster))
+        cmd.append('--conf {0}'.format(cfg.conf))
         cmd.append('start')
         cmd.append('osd')
 
@@ -1199,8 +1199,8 @@ class _CephDaemon(object):
         cfg = _CephConf(cluster)
 
         cmd = ['/etc/init.d/ceph']
-        cmd.append('--cluster {}'.format(cfg.cluster))
-        cmd.append('--conf {}'.format(cfg.conf))
+        cmd.append('--cluster {0}'.format(cfg.cluster))
+        cmd.append('--conf {0}'.format(cfg.conf))
         cmd.append('start')
         cmd.append('mds')
 
@@ -1211,8 +1211,8 @@ class _CephDaemon(object):
         cfg = _CephConf(cluster)
 
         cmd = ['/etc/init.d/ceph']
-        cmd.append('--cluster {}'.format(cfg.cluster))
-        cmd.append('--conf {}'.format(cfg.conf))
+        cmd.append('--cluster {0}'.format(cfg.cluster))
+        cmd.append('--conf {0}'.format(cfg.conf))
         cmd.append('start')
 
         _check_run(cmd)
@@ -1222,8 +1222,8 @@ class _CephDaemon(object):
         cfg = _CephConf(cluster)
 
         cmd = ['/etc/init.d/ceph']
-        cmd.append('--cluster {}'.format(cfg.cluster))
-        cmd.append('--conf {}'.format(cfg.conf))
+        cmd.append('--cluster {0}'.format(cfg.cluster))
+        cmd.append('--conf {0}'.format(cfg.conf))
         cmd.append('stop')
         cmd.append('mon')
 
@@ -1234,8 +1234,8 @@ class _CephDaemon(object):
         cfg = _CephConf(cluster)
 
         cmd = ['/etc/init.d/ceph']
-        cmd.append('--cluster {}'.format(cfg.cluster))
-        cmd.append('--conf {}'.format(cfg.conf))
+        cmd.append('--cluster {0}'.format(cfg.cluster))
+        cmd.append('--conf {0}'.format(cfg.conf))
         cmd.append('stop')
         cmd.append('osd')
 
@@ -1246,8 +1246,8 @@ class _CephDaemon(object):
         cfg = _CephConf(cluster)
 
         cmd = ['/etc/init.d/ceph']
-        cmd.append('--cluster {}'.format(cfg.cluster))
-        cmd.append('--conf {}'.format(cfg.conf))
+        cmd.append('--cluster {0}'.format(cfg.cluster))
+        cmd.append('--conf {0}'.format(cfg.conf))
         cmd.append('stop')
         cmd.append('mds')
 
@@ -1258,8 +1258,8 @@ class _CephDaemon(object):
         cfg = _CephConf(cluster)
 
         cmd = ['/etc/init.d/ceph']
-        cmd.append('--cluster {}'.format(cfg.cluster))
-        cmd.append('--conf {}'.format(cfg.conf))
+        cmd.append('--cluster {0}'.format(cfg.cluster))
+        cmd.append('--conf {0}'.format(cfg.conf))
         cmd.append('stop')
 
         _check_run(cmd)
@@ -1269,8 +1269,8 @@ class _CephDaemon(object):
         cfg = _CephConf(cluster)
 
         cmd = ['/etc/init.d/ceph']
-        cmd.append('--cluster {}'.format(cfg.cluster))
-        cmd.append('--conf {}'.format(cfg.conf))
+        cmd.append('--cluster {0}'.format(cfg.cluster))
+        cmd.append('--conf {0}'.format(cfg.conf))
         cmd.append('restart')
         cmd.append('mon')
 
@@ -1281,8 +1281,8 @@ class _CephDaemon(object):
         cfg = _CephConf(cluster)
 
         cmd = ['/etc/init.d/ceph']
-        cmd.append('--cluster {}'.format(cfg.cluster))
-        cmd.append('--conf {}'.format(cfg.conf))
+        cmd.append('--cluster {0}'.format(cfg.cluster))
+        cmd.append('--conf {0}'.format(cfg.conf))
         cmd.append('restart')
         cmd.append('osd')
 
@@ -1293,8 +1293,8 @@ class _CephDaemon(object):
         cfg = _CephConf(cluster)
 
         cmd = ['/etc/init.d/ceph']
-        cmd.append('--cluster {}'.format(cfg.cluster))
-        cmd.append('--conf {}'.format(cfg.conf))
+        cmd.append('--cluster {0}'.format(cfg.cluster))
+        cmd.append('--conf {0}'.format(cfg.conf))
         cmd.append('restart')
         cmd.append('mds')
 
@@ -1305,16 +1305,16 @@ class _CephDaemon(object):
         cfg = _CephConf(cluster)
 
         cmd = ['/etc/init.d/ceph']
-        cmd.append('--cluster {}'.format(cfg.cluster))
-        cmd.append('--conf {}'.format(cfg.conf))
+        cmd.append('--cluster {0}'.format(cfg.cluster))
+        cmd.append('--conf {0}'.format(cfg.conf))
         cmd.append('restart')
 
         _check_run(cmd)
 
     def start(self):
         cmd = ['/etc/init.d/ceph']
-        cmd.append('--cluster {}'.format(self.cluster))
-        cmd.append('--conf {}'.format(self.conf))
+        cmd.append('--cluster {0}'.format(self.cluster))
+        cmd.append('--conf {0}'.format(self.conf))
         cmd.append('start')
         cmd.append(self.name)
 
@@ -1322,8 +1322,8 @@ class _CephDaemon(object):
 
     def stop(self):
         cmd = ['/etc/init.d/ceph']
-        cmd.append('--cluster {}'.format(self.cluster))
-        cmd.append('--conf {}'.format(self.conf))
+        cmd.append('--cluster {0}'.format(self.cluster))
+        cmd.append('--conf {0}'.format(self.conf))
         cmd.append('stop')
         cmd.append(self.name)
 
@@ -1331,8 +1331,8 @@ class _CephDaemon(object):
 
     def restart(self):
         cmd = ['/etc/init.d/ceph']
-        cmd.append('--cluster {}'.format(self.cluster))
-        cmd.append('--conf {}'.format(self.conf))
+        cmd.append('--cluster {0}'.format(self.cluster))
+        cmd.append('--conf {0}'.format(self.conf))
         cmd.append('restart')
         cmd.append(self.name)
 
@@ -1356,8 +1356,8 @@ class _CephOsdDaemon(_CephDaemon):
 
     def status(self):
         cmd = ['ceph']
-        cmd.append('--cluster {}'.format(self.cluster))
-        cmd.append('--conf {}'.format(self.conf))
+        cmd.append('--cluster {0}'.format(self.cluster))
+        cmd.append('--conf {0}'.format(self.conf))
         cmd.append('daemon')
         cmd.append(self.name)
         cmd.append('status')
@@ -1387,8 +1387,8 @@ class _CephMonDaemon(_CephDaemon):
 
     def status(self):
         cmd = ['ceph']
-        cmd.append('--cluster {}'.format(self.cluster))
-        cmd.append('--conf {}'.format(self.conf))
+        cmd.append('--cluster {0}'.format(self.cluster))
+        cmd.append('--conf {0}'.format(self.conf))
         cmd.append('daemon')
         cmd.append(self.name)
         cmd.append('mon_status')
@@ -1488,18 +1488,18 @@ class _CephOsd(object):
         if not data:
             raise ValueError('OSD data must not be None')
         if not os.path.isabs(data):
-            raise ValueError('OSD data: {} is not an abs path'.format(data))
+            raise ValueError('OSD data: {0} is not an abs path'.format(data))
         if not os.path.exists(data):
-            raise ValueError('OSD data: {} does not exist'.format(data))
+            raise ValueError('OSD data: {0} does not exist'.format(data))
 
         if journal:
             if not os.path.isabs(data):
                 raise ValueError(
-                    'OSD journal: {} is not an abs path'.format(journal)
+                    'OSD journal: {0} is not an abs path'.format(journal)
                 )
             if not os.path.exists(journal):
                 raise ValueError(
-                    'OSD journal: {} does not exist'.format(journal)
+                    'OSD journal: {0} does not exist'.format(journal)
                 )
 
         # d: data
@@ -1693,7 +1693,7 @@ class _CephOsd(object):
         try:
             osdid = int(whoami)
         except ValueError:
-            raise AssertionError('corrupted whoami: {}'.format(whoami))
+            raise AssertionError('corrupted whoami: {0}'.format(whoami))
 
         return osdid
 
@@ -1763,10 +1763,10 @@ class _CephOsd(object):
     def __get_mkfs_options(cls, cfg):
         fstype = cls.__get_fs_type(cfg)
 
-        options = cfg.get_conf('osd_mkfs_options_{}'.format(fstype))
+        options = cfg.get_conf('osd_mkfs_options_{0}'.format(fstype))
 
         if options is None:
-            options = cfg.get_conf('osd_fs_mkfs_options_{}'.format(fstype))
+            options = cfg.get_conf('osd_fs_mkfs_options_{0}'.format(fstype))
 
         if options is None:
             options = MKFS_OPTIONS.get(fstype, '')
@@ -1777,10 +1777,10 @@ class _CephOsd(object):
     def __get_mount_options(cls, cfg):
         fstype = cls.__get_fs_type(cfg)
 
-        options = cfg.get_conf('osd_mount_options_{}'.format(fstype))
+        options = cfg.get_conf('osd_mount_options_{0}'.format(fstype))
 
         if options is None:
-            options = cfg.get_conf('osd_fs_mount_options_{}'.format(fstype))
+            options = cfg.get_conf('osd_fs_mount_options_{0}'.format(fstype))
 
         if options is None:
             options = MOUNT_OPTIONS.get(fstype, '')
@@ -1789,11 +1789,11 @@ class _CephOsd(object):
 
     @classmethod
     def __unregister(cls, osdid, cfg):
-        name = 'osd.{}'.format(osdid)
+        name = 'osd.{0}'.format(osdid)
 
         cmd = ['ceph']
-        cmd.append('--cluster {}'.format(cfg.cluster))
-        cmd.append('--conf {}'.format(cfg.conf))
+        cmd.append('--cluster {0}'.format(cfg.cluster))
+        cmd.append('--conf {0}'.format(cfg.conf))
         cmd.append('osd')
         cmd.append('crush')
         cmd.append('rm')
@@ -1803,11 +1803,11 @@ class _CephOsd(object):
 
     @classmethod
     def __remove_crush(cls, osdid, cfg):
-        name = 'osd.{}'.format(osdid)
+        name = 'osd.{0}'.format(osdid)
 
         cmd = ['ceph']
-        cmd.append('--cluster {}'.format(cfg.cluster))
-        cmd.append('--conf {}'.format(cfg.conf))
+        cmd.append('--cluster {0}'.format(cfg.cluster))
+        cmd.append('--conf {0}'.format(cfg.conf))
         cmd.append('osd')
         cmd.append('rm')
         cmd.append(name)
@@ -1816,11 +1816,11 @@ class _CephOsd(object):
 
     @classmethod
     def __remove_auth(cls, osdid, cfg):
-        name = 'osd.{}'.format(osdid)
+        name = 'osd.{0}'.format(osdid)
 
         cmd = ['ceph']
-        cmd.append('--cluster {}'.format(cfg.cluster))
-        cmd.append('--conf {}'.format(cfg.conf))
+        cmd.append('--cluster {0}'.format(cfg.cluster))
+        cmd.append('--conf {0}'.format(cfg.conf))
         cmd.append('auth')
         cmd.append('del')
         cmd.append(name)
@@ -1828,14 +1828,14 @@ class _CephOsd(object):
         _check_run(cmd)
 
     def __signature(self):
-        return ['magic={}'.format('\xe8\x8e\x8e\xe5\xad\x90'),
-                'version={}'.format('v1'),
-                'cluster={}'.format(self.cluster),
-                'fsid={}'.format(self.fsid),
-                'data={}'.format(self.data),
-                'journal={}'.format(self.journal),
-                'dtype={}'.format(self.dtype),
-                'jtype={}'.format(self.jtype)]
+        return ['magic={0}'.format('\xe8\x8e\x8e\xe5\xad\x90'),
+                'version={0}'.format('v1'),
+                'cluster={0}'.format(self.cluster),
+                'fsid={0}'.format(self.fsid),
+                'data={0}'.format(self.data),
+                'journal={0}'.format(self.journal),
+                'dtype={0}'.format(self.dtype),
+                'jtype={0}'.format(self.jtype)]
 
     def __compare_signature(self, sig):
         if self.__signature() == sig:
@@ -1858,7 +1858,7 @@ class _CephOsd(object):
         # ceph-disk does not support --conf
         cmd = ['ceph-disk']
         cmd.append('prepare')
-        cmd.append('--cluster {}'.format(self.cluster))
+        cmd.append('--cluster {0}'.format(self.cluster))
         cmd.append(self.ddev.odev)
         if self.jdev is not None:
             cmd.append(self.jdev.odev)
@@ -1981,19 +1981,19 @@ class _CephOsd(object):
             new = ret['comment'][1]['new config']
             old = ret['comment'][1]['old config']
 
-            new.append('cluster: {}'.format(nsig['cluster']))
-            new.append('fsid: {}'.format(nsig['fsid']))
-            new.append('data: {}'.format(nsig['data']))
-            new.append('journal: {}'.format(nsig['journal']))
-            new.append('data type: {}'.format(nsig['dtype']))
-            new.append('journal type: {}'.format(nsig['jtype']))
+            new.append('cluster: {0}'.format(nsig['cluster']))
+            new.append('fsid: {0}'.format(nsig['fsid']))
+            new.append('data: {0}'.format(nsig['data']))
+            new.append('journal: {0}'.format(nsig['journal']))
+            new.append('data type: {0}'.format(nsig['dtype']))
+            new.append('journal type: {0}'.format(nsig['jtype']))
 
-            old.append('cluster: {}'.format(osig['cluster']))
-            old.append('fsid: {}'.format(osig['fsid']))
-            old.append('data: {}'.format(osig['data']))
-            old.append('journal: {}'.format(osig['journal']))
-            old.append('data type: {}'.format(osig['dtype']))
-            old.append('journal type: {}'.format(osig['jtype']))
+            old.append('cluster: {0}'.format(osig['cluster']))
+            old.append('fsid: {0}'.format(osig['fsid']))
+            old.append('data: {0}'.format(osig['data']))
+            old.append('journal: {0}'.format(osig['journal']))
+            old.append('data type: {0}'.format(osig['dtype']))
+            old.append('journal type: {0}'.format(osig['jtype']))
 
             return ret
 
@@ -2043,19 +2043,19 @@ class _CephOsd(object):
             new = ret['comment'][1]['new config']
             old = ret['comment'][1]['old config']
 
-            new.append('cluster: {}'.format(nsig['cluster']))
-            new.append('fsid: {}'.format(nsig['fsid']))
-            new.append('data: {}'.format(nsig['data']))
-            new.append('journal: {}'.format(nsig['journal']))
-            new.append('data type: {}'.format(nsig['dtype']))
-            new.append('journal type: {}'.format(nsig['jtype']))
+            new.append('cluster: {0}'.format(nsig['cluster']))
+            new.append('fsid: {0}'.format(nsig['fsid']))
+            new.append('data: {0}'.format(nsig['data']))
+            new.append('journal: {0}'.format(nsig['journal']))
+            new.append('data type: {0}'.format(nsig['dtype']))
+            new.append('journal type: {0}'.format(nsig['jtype']))
 
-            old.append('cluster: {}'.format(osig['cluster']))
-            old.append('fsid: {}'.format(osig['fsid']))
-            old.append('data: {}'.format(osig['data']))
-            old.append('journal: {}'.format(osig['journal']))
-            old.append('data type: {}'.format(osig['dtype']))
-            old.append('journal type: {}'.format(osig['jtype']))
+            old.append('cluster: {0}'.format(osig['cluster']))
+            old.append('fsid: {0}'.format(osig['fsid']))
+            old.append('data: {0}'.format(osig['data']))
+            old.append('journal: {0}'.format(osig['journal']))
+            old.append('data type: {0}'.format(osig['dtype']))
+            old.append('journal type: {0}'.format(osig['jtype']))
 
             return ret
 
@@ -2145,19 +2145,19 @@ class _CephOsd(object):
             new = ret['comment'][1]['new config']
             old = ret['comment'][1]['old config']
 
-            new.append('cluster: {}'.format(nsig['cluster']))
-            new.append('fsid: {}'.format(nsig['fsid']))
-            new.append('data: {}'.format(nsig['data']))
-            new.append('journal: {}'.format(nsig['journal']))
-            new.append('data type: {}'.format(nsig['dtype']))
-            new.append('journal type: {}'.format(nsig['jtype']))
+            new.append('cluster: {0}'.format(nsig['cluster']))
+            new.append('fsid: {0}'.format(nsig['fsid']))
+            new.append('data: {0}'.format(nsig['data']))
+            new.append('journal: {0}'.format(nsig['journal']))
+            new.append('data type: {0}'.format(nsig['dtype']))
+            new.append('journal type: {0}'.format(nsig['jtype']))
 
-            old.append('cluster: {}'.format(osig['cluster']))
-            old.append('fsid: {}'.format(osig['fsid']))
-            old.append('data: {}'.format(osig['data']))
-            old.append('journal: {}'.format(osig['journal']))
-            old.append('data type: {}'.format(osig['dtype']))
-            old.append('journal type: {}'.format(osig['jtype']))
+            old.append('cluster: {0}'.format(osig['cluster']))
+            old.append('fsid: {0}'.format(osig['fsid']))
+            old.append('data: {0}'.format(osig['data']))
+            old.append('journal: {0}'.format(osig['journal']))
+            old.append('data type: {0}'.format(osig['dtype']))
+            old.append('journal type: {0}'.format(osig['jtype']))
 
             return ret
 
@@ -2243,19 +2243,19 @@ class _CephOsd(object):
             new = ret['comment'][1]['new config']
             old = ret['comment'][1]['old config']
 
-            new.append('cluster: {}'.format(nsig['cluster']))
-            new.append('fsid: {}'.format(nsig['fsid']))
-            new.append('data: {}'.format(nsig['data']))
-            new.append('journal: {}'.format(nsig['journal']))
-            new.append('data type: {}'.format(nsig['dtype']))
-            new.append('journal type: {}'.format(nsig['jtype']))
+            new.append('cluster: {0}'.format(nsig['cluster']))
+            new.append('fsid: {0}'.format(nsig['fsid']))
+            new.append('data: {0}'.format(nsig['data']))
+            new.append('journal: {0}'.format(nsig['journal']))
+            new.append('data type: {0}'.format(nsig['dtype']))
+            new.append('journal type: {0}'.format(nsig['jtype']))
 
-            old.append('cluster: {}'.format(osig['cluster']))
-            old.append('fsid: {}'.format(osig['fsid']))
-            old.append('data: {}'.format(osig['data']))
-            old.append('journal: {}'.format(osig['journal']))
-            old.append('data type: {}'.format(osig['dtype']))
-            old.append('journal type: {}'.format(osig['jtype']))
+            old.append('cluster: {0}'.format(osig['cluster']))
+            old.append('fsid: {0}'.format(osig['fsid']))
+            old.append('data: {0}'.format(osig['data']))
+            old.append('journal: {0}'.format(osig['journal']))
+            old.append('data type: {0}'.format(osig['dtype']))
+            old.append('journal type: {0}'.format(osig['jtype']))
 
             return ret
 
@@ -2272,7 +2272,7 @@ class _CephOsd(object):
                 raise AssertionError('corrupted osd filesystem')
 
             # journal device is created from another disk
-            rjournal = '/dev/disk/by-partuuid/{}'.format(self.__old_juuid)
+            rjournal = '/dev/disk/by-partuuid/{0}'.format(self.__old_juuid)
             rjdev = _CephDev(rjournal, _CephDevType.PART)
 
             journal = rjdev.get_part_disk()
@@ -2343,19 +2343,19 @@ class _CephOsd(object):
             new = ret['comment'][1]['new config']
             old = ret['comment'][1]['old config']
 
-            new.append('cluster: {}'.format(nsig['cluster']))
-            new.append('fsid: {}'.format(nsig['fsid']))
-            new.append('data: {}'.format(nsig['data']))
-            new.append('journal: {}'.format(nsig['journal']))
-            new.append('data type: {}'.format(nsig['dtype']))
-            new.append('journal type: {}'.format(nsig['jtype']))
+            new.append('cluster: {0}'.format(nsig['cluster']))
+            new.append('fsid: {0}'.format(nsig['fsid']))
+            new.append('data: {0}'.format(nsig['data']))
+            new.append('journal: {0}'.format(nsig['journal']))
+            new.append('data type: {0}'.format(nsig['dtype']))
+            new.append('journal type: {0}'.format(nsig['jtype']))
 
-            old.append('cluster: {}'.format(osig['cluster']))
-            old.append('fsid: {}'.format(osig['fsid']))
-            old.append('data: {}'.format(osig['data']))
-            old.append('journal: {}'.format(osig['journal']))
-            old.append('data type: {}'.format(osig['dtype']))
-            old.append('journal type: {}'.format(osig['jtype']))
+            old.append('cluster: {0}'.format(osig['cluster']))
+            old.append('fsid: {0}'.format(osig['fsid']))
+            old.append('data: {0}'.format(osig['data']))
+            old.append('journal: {0}'.format(osig['journal']))
+            old.append('data type: {0}'.format(osig['dtype']))
+            old.append('journal type: {0}'.format(osig['jtype']))
 
             return ret
 
@@ -2434,7 +2434,7 @@ class _CephOsd(object):
                 rddev.umount(umount_all=True)
                 os.rmdir(path)
 
-        changes['osd.{}'.format(osdid)] = daemonchanges
+        changes['osd.{0}'.format(osdid)] = daemonchanges
 
         return ret
 
@@ -2479,19 +2479,19 @@ class _CephOsd(object):
             new = ret['comment'][1]['new config']
             old = ret['comment'][1]['old config']
 
-            new.append('cluster: {}'.format(nsig['cluster']))
-            new.append('fsid: {}'.format(nsig['fsid']))
-            new.append('data: {}'.format(nsig['data']))
-            new.append('journal: {}'.format(nsig['journal']))
-            new.append('data type: {}'.format(nsig['dtype']))
-            new.append('journal type: {}'.format(nsig['jtype']))
+            new.append('cluster: {0}'.format(nsig['cluster']))
+            new.append('fsid: {0}'.format(nsig['fsid']))
+            new.append('data: {0}'.format(nsig['data']))
+            new.append('journal: {0}'.format(nsig['journal']))
+            new.append('data type: {0}'.format(nsig['dtype']))
+            new.append('journal type: {0}'.format(nsig['jtype']))
 
-            old.append('cluster: {}'.format(osig['cluster']))
-            old.append('fsid: {}'.format(osig['fsid']))
-            old.append('data: {}'.format(osig['data']))
-            old.append('journal: {}'.format(osig['journal']))
-            old.append('data type: {}'.format(osig['dtype']))
-            old.append('journal type: {}'.format(osig['jtype']))
+            old.append('cluster: {0}'.format(osig['cluster']))
+            old.append('fsid: {0}'.format(osig['fsid']))
+            old.append('data: {0}'.format(osig['data']))
+            old.append('journal: {0}'.format(osig['journal']))
+            old.append('data type: {0}'.format(osig['dtype']))
+            old.append('journal type: {0}'.format(osig['jtype']))
 
             return ret
 
@@ -2565,7 +2565,7 @@ class _CephOsd(object):
                         raise AssertionError('corrupted osd filesystem')
 
                     # journal device is created from another disk
-                    rjournal = '/dev/disk/by-partuuid/{}'.format(self.__old_juuid)
+                    rjournal = '/dev/disk/by-partuuid/{0}'.format(self.__old_juuid)
                     rjdev = _CephDev(rjournal, _CephDevType.PART)
 
                     journal = rjdev.get_part_disk()
@@ -2595,7 +2595,7 @@ class _CephOsd(object):
         if journalchanges:
             changes[self.journal] = journalchanges
         if daemonchanges:
-            changes['osd.{}'.format(osdid)] = daemonchanges
+            changes['osd.{0}'.format(osdid)] = daemonchanges
 
         return ret
 
@@ -2679,7 +2679,7 @@ class _CephMon(object):
             cluster = CEPH_CLUSTER
 
         if auth_type not in ['cephx', 'none']:
-            raise AssertionError('Invalid auth_type: {}'.format(auth_type))
+            raise AssertionError('Invalid auth_type: {0}'.format(auth_type))
 
         if auth_type == 'cephx' and not mon_key:
             raise AssertionError('cephx auth need auth key provided')
@@ -2689,7 +2689,7 @@ class _CephMon(object):
         if not os.path.exists(cfg.conf):
             raise AssertionError('ceph conf file does not exist')
 
-        name = 'mon.{}'.format(mon_id)
+        name = 'mon.{0}'.format(mon_id)
 
         mon_data = cfg.get_conf('mon_data', name)
         if not mon_data:
@@ -2781,14 +2781,14 @@ class _CephMon(object):
         return self._state
 
     def __signature(self):
-        return ['magic={}'.format('\xc3\xc3\xc8\xfd'),
-                'version={}'.format('v2'),
-                'cluster={}'.format(self.cluster),
-                'fsid={}'.format(self.fsid),
-                'mon_id={}'.format(self.mon_id),
-                'auth_type={}'.format(self.auth_type),
-                'mon_key={}'.format(self.mon_key),
-                'mon_addr={}'.format(self.mon_addr)]
+        return ['magic={0}'.format('\xc3\xc3\xc8\xfd'),
+                'version={0}'.format('v2'),
+                'cluster={0}'.format(self.cluster),
+                'fsid={0}'.format(self.fsid),
+                'mon_id={0}'.format(self.mon_id),
+                'auth_type={0}'.format(self.auth_type),
+                'mon_key={0}'.format(self.mon_key),
+                'mon_addr={0}'.format(self.mon_addr)]
 
     def __compare_signature(self, sig):
         if sig == self.__signature():
@@ -2812,14 +2812,14 @@ class _CephMon(object):
 
             # mkfs
             cmd = ['ceph-mon']
-            cmd.append('--cluster {}'.format(self.cluster))
-            cmd.append('--conf {}'.format(self.conf))
-            cmd.append('--id {}'.format(self.mon_id))
+            cmd.append('--cluster {0}'.format(self.cluster))
+            cmd.append('--conf {0}'.format(self.conf))
+            cmd.append('--id {0}'.format(self.mon_id))
             cmd.append('--mkfs')
             if keyring:
-                cmd.append('--keyring {}'.format(keyring))
+                cmd.append('--keyring {0}'.format(keyring))
             if self.mon_addr:
-                cmd.append('--public-addr {}'.format(self.mon_addr))
+                cmd.append('--public-addr {0}'.format(self.mon_addr))
 
             _check_run(cmd)
 
@@ -2831,8 +2831,8 @@ class _CephMon(object):
 
     def __register(self):
         cmd = ['ceph']
-        cmd.append('--cluster {}'.format(self.cluster))
-        cmd.append('--conf {}'.format(self.conf))
+        cmd.append('--cluster {0}'.format(self.cluster))
+        cmd.append('--conf {0}'.format(self.conf))
         cmd.append('mon')
         cmd.append('add')
         cmd.append(self.mon_id)
@@ -2841,8 +2841,8 @@ class _CephMon(object):
 
     def __unregister(self):
         cmd = ['ceph']
-        cmd.append('--cluster {}'.format(self.cluster))
-        cmd.append('--conf {}'.format(self.conf))
+        cmd.append('--cluster {0}'.format(self.cluster))
+        cmd.append('--conf {0}'.format(self.conf))
         cmd.append('mon')
         cmd.append('remove')
         cmd.append(self.mon_id)
@@ -2863,7 +2863,7 @@ class _CephMon(object):
         ret = {
             'name': self.mon_id,
             'result': True,
-            'comment': 'MON: mon.{} prepared'.format(self.mon_id),
+            'comment': 'MON: mon.{0} prepared'.format(self.mon_id),
             'changes': {}
         }
 
@@ -2917,7 +2917,7 @@ class _CephMon(object):
 
         if self.__old_signature is None:
                 # not managed by us
-                return _error(ret, 'MON: mon.{} is prepared, but not by us, skip'
+                return _error(ret, 'MON: mon.{0} is prepared, but not by us, skip'
                               .format(mon_id))
 
         if not self.__compare_signature(self.__old_signature):
@@ -2926,32 +2926,32 @@ class _CephMon(object):
             osig = self.__parse_signature(self.__old_signature)
 
             ret['result'] = False
-            ret['comment'] = ['MON: mon.{} is prepared, but arguments changed '
+            ret['comment'] = ['MON: mon.{0} is prepared, but arguments changed '
                               'since last preparation, skip'
                               .format(mon_id),
                               {'new config': [], 'old config': []}]
             new = ret['comment'][1]['new config']
             old = ret['comment'][1]['old config']
 
-            new.append('cluster: {}'.format(nsig['cluster']))
-            new.append('fsid: {}'.format(nsig['fsid']))
-            new.append('mon id: {}'.format(nsig['mon_id']))
-            new.append('auth type: {}'.format(nsig['auth_type']))
-            new.append('mon key: {}'.format(nsig['mon_key']))
-            new.append('mon addr: {}'.format(nsig['mon_addr']))
+            new.append('cluster: {0}'.format(nsig['cluster']))
+            new.append('fsid: {0}'.format(nsig['fsid']))
+            new.append('mon id: {0}'.format(nsig['mon_id']))
+            new.append('auth type: {0}'.format(nsig['auth_type']))
+            new.append('mon key: {0}'.format(nsig['mon_key']))
+            new.append('mon addr: {0}'.format(nsig['mon_addr']))
 
-            old.append('cluster: {}'.format(osig['cluster']))
-            old.append('fsid: {}'.format(osig['fsid']))
-            old.append('mon id: {}'.format(osig['mon_id']))
-            old.append('auth type: {}'.format(osig['auth_type']))
-            old.append('mon key: {}'.format(osig['mon_key']))
-            old.append('mon addr: {}'.format(osig['mon_addr']))
+            old.append('cluster: {0}'.format(osig['cluster']))
+            old.append('fsid: {0}'.format(osig['fsid']))
+            old.append('mon id: {0}'.format(osig['mon_id']))
+            old.append('auth type: {0}'.format(osig['auth_type']))
+            old.append('mon key: {0}'.format(osig['mon_key']))
+            old.append('mon addr: {0}'.format(osig['mon_addr']))
 
             return ret
 
         # signature match
 
-        ret['comment'] = 'MON: mon.{} is already prepared, skip'.format(mon_id)
+        ret['comment'] = 'MON: mon.{0} is already prepared, skip'.format(mon_id)
 
         return ret
 
@@ -2959,7 +2959,7 @@ class _CephMon(object):
         ret = {
             'name': self.mon_id,
             'result': True,
-            'comment': 'MON: mon.{} activated'.format(self.mon_id),
+            'comment': 'MON: mon.{0} activated'.format(self.mon_id),
             'changes': {}
         }
 
@@ -2981,11 +2981,11 @@ class _CephMon(object):
         self.init()
 
         if self._state == _CephMonState.FREE:
-            return _error(ret, 'MON: mon.{} is not prepared, skip'.format(mon_id))
+            return _error(ret, 'MON: mon.{0} is not prepared, skip'.format(mon_id))
 
         if self.__old_signature is None:
             # not managed by us
-            return _error(ret, 'MON: mon.{} is not prepared by us, skip'
+            return _error(ret, 'MON: mon.{0} is not prepared by us, skip'
                           .format(mon_id))
 
         if not self.__compare_signature(self.__old_signature):
@@ -2994,26 +2994,26 @@ class _CephMon(object):
             osig = self.__parse_signature(self.__old_signature)
 
             ret['result'] = False
-            ret['comment'] = ['MON: mon.{} is prepared, but arguments changed '
+            ret['comment'] = ['MON: mon.{0} is prepared, but arguments changed '
                               'since last preparation, skip'
                               .format(mon_id),
                               {'new config': [], 'old config': []}]
             new = ret['comment'][1]['new config']
             old = ret['comment'][1]['old config']
 
-            new.append('cluster: {}'.format(nsig['cluster']))
-            new.append('fsid: {}'.format(nsig['fsid']))
-            new.append('mon id: {}'.format(nsig['mon_id']))
-            new.append('auth type: {}'.format(nsig['auth_type']))
-            new.append('mon key: {}'.format(nsig['mon_key']))
-            new.append('mon addr: {}'.format(nsig['mon_addr']))
+            new.append('cluster: {0}'.format(nsig['cluster']))
+            new.append('fsid: {0}'.format(nsig['fsid']))
+            new.append('mon id: {0}'.format(nsig['mon_id']))
+            new.append('auth type: {0}'.format(nsig['auth_type']))
+            new.append('mon key: {0}'.format(nsig['mon_key']))
+            new.append('mon addr: {0}'.format(nsig['mon_addr']))
 
-            old.append('cluster: {}'.format(osig['cluster']))
-            old.append('fsid: {}'.format(osig['fsid']))
-            old.append('mon id: {}'.format(osig['mon_id']))
-            old.append('auth type: {}'.format(osig['auth_type']))
-            old.append('mon key: {}'.format(osig['mon_key']))
-            old.append('mon addr: {}'.format(osig['mon_addr']))
+            old.append('cluster: {0}'.format(osig['cluster']))
+            old.append('fsid: {0}'.format(osig['fsid']))
+            old.append('mon id: {0}'.format(osig['mon_id']))
+            old.append('auth type: {0}'.format(osig['auth_type']))
+            old.append('mon key: {0}'.format(osig['mon_key']))
+            old.append('mon addr: {0}'.format(osig['mon_addr']))
 
             return ret
 
@@ -3037,7 +3037,7 @@ class _CephMon(object):
                 for opt, val in opts.iteritems():
                     parser.set(self.name, opt, val)
 
-                confchanges.append('New section: {}'.format(name))
+                confchanges.append('New section: {0}'.format(name))
 
                 for opt, val in opts.iteritems():
                     confchanges.append('New option: {opt} = {val}'
@@ -3075,7 +3075,7 @@ class _CephMon(object):
         if state == _CephMonState.ACTIVE:
             if daemon.is_running():
                 if self._state == _CephMonState.ACTIVE:
-                    ret['comment'] = 'MON: mon.{} is already activated, skip'\
+                    ret['comment'] = 'MON: mon.{0} is already activated, skip'\
                     .format(mon_id)
                     return ret
 
@@ -3097,7 +3097,7 @@ class _CephMon(object):
         ret = {
             'name': self.mon_id,
             'result': True,
-            'comment': 'MON: mon.{} managed'.format(self.mon_id),
+            'comment': 'MON: mon.{0} managed'.format(self.mon_id),
             'changes': {}
         }
 
@@ -3141,7 +3141,7 @@ class _CephMon(object):
                     datachanges.append('Clear mon data directory')
         elif self.__old_signature is None:
             # not managed by us
-            return _error(ret, 'MON: mon.{} is prepared, but not by us, skip'
+            return _error(ret, 'MON: mon.{0} is prepared, but not by us, skip'
                           .format(mon_id))
         elif not self.__compare_signature(self.__old_signature):
             # signature mismatch
@@ -3149,26 +3149,26 @@ class _CephMon(object):
             osig = self.__parse_signature(self.__old_signature)
 
             ret['result'] = False
-            ret['comment'] = ['MON: mon.{} is prepared, but arguments changed '
+            ret['comment'] = ['MON: mon.{0} is prepared, but arguments changed '
                               'since last preparation, skip'
                               .format(mon_id),
                               {'new config': [], 'old config': []}]
             new = ret['comment'][1]['new config']
             old = ret['comment'][1]['old config']
 
-            new.append('cluster: {}'.format(nsig['cluster']))
-            new.append('fsid: {}'.format(nsig['fsid']))
-            new.append('mon id: {}'.format(nsig['mon_id']))
-            new.append('auth type: {}'.format(nsig['auth_type']))
-            new.append('mon key: {}'.format(nsig['mon_key']))
-            new.append('mon addr: {}'.format(nsig['mon_addr']))
+            new.append('cluster: {0}'.format(nsig['cluster']))
+            new.append('fsid: {0}'.format(nsig['fsid']))
+            new.append('mon id: {0}'.format(nsig['mon_id']))
+            new.append('auth type: {0}'.format(nsig['auth_type']))
+            new.append('mon key: {0}'.format(nsig['mon_key']))
+            new.append('mon addr: {0}'.format(nsig['mon_addr']))
 
-            old.append('cluster: {}'.format(osig['cluster']))
-            old.append('fsid: {}'.format(osig['fsid']))
-            old.append('mon id: {}'.format(osig['mon_id']))
-            old.append('auth type: {}'.format(osig['auth_type']))
-            old.append('mon key: {}'.format(osig['mon_key']))
-            old.append('mon addr: {}'.format(osig['mon_addr']))
+            old.append('cluster: {0}'.format(osig['cluster']))
+            old.append('fsid: {0}'.format(osig['fsid']))
+            old.append('mon id: {0}'.format(osig['mon_id']))
+            old.append('auth type: {0}'.format(osig['auth_type']))
+            old.append('mon key: {0}'.format(osig['mon_key']))
+            old.append('mon addr: {0}'.format(osig['mon_addr']))
 
             return ret
 
@@ -3200,7 +3200,7 @@ class _CephMon(object):
                 for opt, val in opts.iteritems():
                     parser.set(self.name, opt, val)
 
-                confchanges.append('New section: {}'.format(name))
+                confchanges.append('New section: {0}'.format(name))
 
                 for opt, val in opts.iteritems():
                     confchanges.append('New option: {opt} = {val}'.format(
@@ -3238,7 +3238,7 @@ class _CephMon(object):
         if state == _CephMonState.ACTIVE:
             if daemon.is_running():
                 if self._state == _CephMonState.ACTIVE:
-                    ret['comment'] = 'MON: mon.{} is already managed, skip'\
+                    ret['comment'] = 'MON: mon.{0} is already managed, skip'\
                                      .format(mon_id)
                     return ret
 
@@ -3262,7 +3262,7 @@ class _CephMon(object):
         ret = {
             'name': self.mon_id,
             'result': True,
-            'comment': 'MON: mon.{} unprepared'.format(self.mon_id),
+            'comment': 'MON: mon.{0} unprepared'.format(self.mon_id),
             'changes': {}
         }
 
@@ -3277,13 +3277,13 @@ class _CephMon(object):
 
         if self._state == _CephMonState.FREE:
             # not prepared
-            ret['comment'] = 'MON: mon.{} is not prepared, skip'.format(mon_id)
+            ret['comment'] = 'MON: mon.{0} is not prepared, skip'.format(mon_id)
 
             return ret
 
         if self.__old_signature is None:
             # not managed by us
-            return _error(ret, 'MON: mon.{} is not prepared by us, skip'
+            return _error(ret, 'MON: mon.{0} is not prepared by us, skip'
                           .format(mon_id))
 
         if not self.__compare_signature(self.__old_signature):
@@ -3292,31 +3292,31 @@ class _CephMon(object):
             osig = self.__parse_signature(self.__old_signature)
 
             ret['result'] = False
-            ret['comment'] = ['MON: mon.{} is prepared, but arguments changed '
+            ret['comment'] = ['MON: mon.{0} is prepared, but arguments changed '
                               'since last preparation, skip'
                               .format(mon_id),
                               {'new config': [], 'old config': []}]
             new = ret['comment'][1]['new config']
             old = ret['comment'][1]['old config']
 
-            new.append('cluster: {}'.format(nsig['cluster']))
-            new.append('fsid: {}'.format(nsig['fsid']))
-            new.append('mon id: {}'.format(nsig['mon_id']))
-            new.append('auth type: {}'.format(nsig['auth_type']))
-            new.append('mon key: {}'.format(nsig['mon_key']))
-            new.append('mon addr: {}'.format(nsig['mon_addr']))
+            new.append('cluster: {0}'.format(nsig['cluster']))
+            new.append('fsid: {0}'.format(nsig['fsid']))
+            new.append('mon id: {0}'.format(nsig['mon_id']))
+            new.append('auth type: {0}'.format(nsig['auth_type']))
+            new.append('mon key: {0}'.format(nsig['mon_key']))
+            new.append('mon addr: {0}'.format(nsig['mon_addr']))
 
-            old.append('cluster: {}'.format(osig['cluster']))
-            old.append('fsid: {}'.format(osig['fsid']))
-            old.append('mon id: {}'.format(osig['mon_id']))
-            old.append('auth type: {}'.format(osig['auth_type']))
-            old.append('mon key: {}'.format(osig['mon_key']))
-            old.append('mon addr: {}'.format(osig['mon_addr']))
+            old.append('cluster: {0}'.format(osig['cluster']))
+            old.append('fsid: {0}'.format(osig['fsid']))
+            old.append('mon id: {0}'.format(osig['mon_id']))
+            old.append('auth type: {0}'.format(osig['auth_type']))
+            old.append('mon key: {0}'.format(osig['mon_key']))
+            old.append('mon addr: {0}'.format(osig['mon_addr']))
 
             return ret
 
         if self._state > _CephMonState.READY:
-            return _error(ret, 'MON: mon.{} is activated, skip'
+            return _error(ret, 'MON: mon.{0} is activated, skip'
                           .format(mon_id))
 
         shutil.rmtree(mon_data)
@@ -3331,7 +3331,7 @@ class _CephMon(object):
         ret = {
             'name': self.mon_id,
             'result': True,
-            'comment': 'MON: mon.{} deactivated'.format(self.mon_id),
+            'comment': 'MON: mon.{0} deactivated'.format(self.mon_id),
             'changes': {}
         }
 
@@ -3349,19 +3349,19 @@ class _CephMon(object):
 
         if self._state == _CephMonState.FREE:
             # not prepared
-            ret['comment'] = 'MON: mon.{} is not prepared, skip'.format(mon_id)
+            ret['comment'] = 'MON: mon.{0} is not prepared, skip'.format(mon_id)
 
             return ret
 
         if self._state == _CephMonState.READY:
             # not activated
-            ret['comment'] = 'MON: mon.{} is not activated, skip'.format(mon_id)
+            ret['comment'] = 'MON: mon.{0} is not activated, skip'.format(mon_id)
 
             return ret
 
         if self.__old_signature is None:
             # not managed by us
-            return _error(ret, 'MON: mon.{} is not prepared by us, skip'
+            return _error(ret, 'MON: mon.{0} is not prepared by us, skip'
                           .format(mon_id))
 
         if not self.__compare_signature(self.__old_signature):
@@ -3370,26 +3370,26 @@ class _CephMon(object):
             osig = self.__parse_signature(self.__old_signature)
 
             ret['result'] = False
-            ret['comment'] = ['MON: mon.{} is prepared, but arguments changed '
+            ret['comment'] = ['MON: mon.{0} is prepared, but arguments changed '
                               'since last preparation, skip'
                               .format(mon_id),
                               {'new config': [], 'old config': []}]
             new = ret['comment'][1]['new config']
             old = ret['comment'][1]['old config']
 
-            new.append('cluster: {}'.format(nsig['cluster']))
-            new.append('fsid: {}'.format(nsig['fsid']))
-            new.append('mon id: {}'.format(nsig['mon_id']))
-            new.append('auth type: {}'.format(nsig['auth_type']))
-            new.append('mon key: {}'.format(nsig['mon_key']))
-            new.append('mon addr: {}'.format(nsig['mon_addr']))
+            new.append('cluster: {0}'.format(nsig['cluster']))
+            new.append('fsid: {0}'.format(nsig['fsid']))
+            new.append('mon id: {0}'.format(nsig['mon_id']))
+            new.append('auth type: {0}'.format(nsig['auth_type']))
+            new.append('mon key: {0}'.format(nsig['mon_key']))
+            new.append('mon addr: {0}'.format(nsig['mon_addr']))
 
-            old.append('cluster: {}'.format(osig['cluster']))
-            old.append('fsid: {}'.format(osig['fsid']))
-            old.append('mon id: {}'.format(osig['mon_id']))
-            old.append('auth type: {}'.format(osig['auth_type']))
-            old.append('mon key: {}'.format(osig['mon_key']))
-            old.append('mon addr: {}'.format(osig['mon_addr']))
+            old.append('cluster: {0}'.format(osig['cluster']))
+            old.append('fsid: {0}'.format(osig['fsid']))
+            old.append('mon id: {0}'.format(osig['mon_id']))
+            old.append('auth type: {0}'.format(osig['auth_type']))
+            old.append('mon key: {0}'.format(osig['mon_key']))
+            old.append('mon addr: {0}'.format(osig['mon_addr']))
 
             return ret
 
@@ -3407,7 +3407,7 @@ class _CephMon(object):
 
                 self.cfg.write()
 
-                confchanges.append('Remove section: {}'.format(name))
+                confchanges.append('Remove section: {0}'.format(name))
                 for opt, val in fopts:
                     confchanges.append(
                         'Remove option: {opt} = {val}'.format(opt=opt, val=val)
@@ -3427,7 +3427,7 @@ class _CephMon(object):
         ret = {
             'name': self.mon_id,
             'result': True,
-            'comment': 'MON: mon.{} unmanaged'.format(self.mon_id),
+            'comment': 'MON: mon.{0} unmanaged'.format(self.mon_id),
             'changes': {}
         }
 
@@ -3446,13 +3446,13 @@ class _CephMon(object):
 
         if self._state == _CephMonState.FREE:
             # not prepared
-            ret['comment'] = 'MON: mon.{} is not prepared, skip'.format(mon_id)
+            ret['comment'] = 'MON: mon.{0} is not prepared, skip'.format(mon_id)
 
             return ret
 
         if self.__old_signature is None:
             # not managed by us
-            return _error(ret, 'MON: mon.{} is not prepared by us, skip'
+            return _error(ret, 'MON: mon.{0} is not prepared by us, skip'
                           .format(mon_id))
 
         if not self.__compare_signature(self.__old_signature):
@@ -3461,26 +3461,26 @@ class _CephMon(object):
             osig = self.__parse_signature(self.__old_signature)
 
             ret['result'] = False
-            ret['comment'] = ['MON: mon.{} is prepared, but arguments changed '
+            ret['comment'] = ['MON: mon.{0} is prepared, but arguments changed '
                               'since last preparation, skip'
                               .format(mon_id),
                               {'new config': [], 'old config': []}]
             new = ret['comment'][1]['new config']
             old = ret['comment'][1]['old config']
 
-            new.append('cluster: {}'.format(nsig['cluster']))
-            new.append('fsid: {}'.format(nsig['fsid']))
-            new.append('mon id: {}'.format(nsig['mon_id']))
-            new.append('auth type: {}'.format(nsig['auth_type']))
-            new.append('mon key: {}'.format(nsig['mon_key']))
-            new.append('mon addr: {}'.format(nsig['mon_addr']))
+            new.append('cluster: {0}'.format(nsig['cluster']))
+            new.append('fsid: {0}'.format(nsig['fsid']))
+            new.append('mon id: {0}'.format(nsig['mon_id']))
+            new.append('auth type: {0}'.format(nsig['auth_type']))
+            new.append('mon key: {0}'.format(nsig['mon_key']))
+            new.append('mon addr: {0}'.format(nsig['mon_addr']))
 
-            old.append('cluster: {}'.format(osig['cluster']))
-            old.append('fsid: {}'.format(osig['fsid']))
-            old.append('mon id: {}'.format(osig['mon_id']))
-            old.append('auth type: {}'.format(osig['auth_type']))
-            old.append('mon key: {}'.format(osig['mon_key']))
-            old.append('mon addr: {}'.format(osig['mon_addr']))
+            old.append('cluster: {0}'.format(osig['cluster']))
+            old.append('fsid: {0}'.format(osig['fsid']))
+            old.append('mon id: {0}'.format(osig['mon_id']))
+            old.append('auth type: {0}'.format(osig['auth_type']))
+            old.append('mon key: {0}'.format(osig['mon_key']))
+            old.append('mon addr: {0}'.format(osig['mon_addr']))
 
             return ret
 
@@ -3500,7 +3500,7 @@ class _CephMon(object):
 
                 self.cfg.write()
 
-                confchanges.append('Remove section: {}'.format(name))
+                confchanges.append('Remove section: {0}'.format(name))
                 for opt, val in fopts:
                     confchanges.append(
                         'Remove option: {opt} = {val}'.format(opt=opt, val=val)
@@ -3670,13 +3670,13 @@ class _CephAuth(object):
         if name:
             if '.' not in name:
                 raise ValueError(
-                    'Invalid name: {}, must be $type.$id'.format(name)
+                    'Invalid name: {0}, must be $type.$id'.format(name)
                 )
 
             (etype, eid) = name.split('.', 1)
 
             if etype not in ['mon', 'osd', 'mds', 'client']:
-                raise ValueError('Invalid entity type: {}'.format(etype))
+                raise ValueError('Invalid entity type: {0}'.format(etype))
 
         cfg = _CephConf(cluster)
 
@@ -3696,7 +3696,7 @@ class _CephAuth(object):
                    cluster=CEPH_CLUSTER):
 
         if etype not in ['mon', 'osd', 'mds', 'client']:
-            raise ValueError('Invalid entity type: {}'.format(etype))
+            raise ValueError('Invalid entity type: {0}'.format(etype))
 
         name = '{type}.{id}'.format(type=etype, id=eid)
 
@@ -3753,14 +3753,14 @@ class _CephAuth(object):
 
         cmd = ['ceph-authtool']
         cmd.append(keyring)
-        cmd.append('--name {}'.format(self.name))
-        cmd.append('--add-key {}'.format(self.key))
+        cmd.append('--name {0}'.format(self.name))
+        cmd.append('--add-key {0}'.format(self.key))
         if self.mon_caps:
-            cmd.append('--cap mon "{}"'.format(self.mon_caps))
+            cmd.append('--cap mon "{0}"'.format(self.mon_caps))
         if self.osd_caps:
-            cmd.append('--cap osd "{}"'.format(self.osd_caps))
+            cmd.append('--cap osd "{0}"'.format(self.osd_caps))
         if self.mds_caps:
-            cmd.append('--cap mds "{}"'.format(self.mds_caps))
+            cmd.append('--cap mds "{0}"'.format(self.mds_caps))
 
         _check_run(cmd)
 
@@ -3773,12 +3773,12 @@ class _CephAuth(object):
             self.gen_keyring(tmpkr)
 
             cmd = ['ceph']
-            cmd.append('--cluster {}'.format(self.cluster))
-            cmd.append('--conf {}'.format(self.conf))
-            cmd.append('--connect-timeout {}'.format(CEPH_CONNECT_TIMEOUT))
-            cmd.append('--name {}'.format(name))
-            cmd.append('--keyring {}'.format(keyring))
-            cmd.append('--in-file {}'.format(tmpkr))
+            cmd.append('--cluster {0}'.format(self.cluster))
+            cmd.append('--conf {0}'.format(self.conf))
+            cmd.append('--connect-timeout {0}'.format(CEPH_CONNECT_TIMEOUT))
+            cmd.append('--name {0}'.format(name))
+            cmd.append('--keyring {0}'.format(keyring))
+            cmd.append('--in-file {0}'.format(tmpkr))
             cmd.append('auth')
             cmd.append('add')
             cmd.append(self.name)
@@ -3790,11 +3790,11 @@ class _CephAuth(object):
 
     def unauth(self, name, keyring):
         cmd = ['ceph']
-        cmd.append('--cluster {}'.format(self.cluster))
-        cmd.append('--conf {}'.format(self.conf))
-        cmd.append('--connect-timeout {}'.format(CEPH_CONNECT_TIMEOUT))
-        cmd.append('--name {}'.format(name))
-        cmd.append('--keyring {}'.format(keyring))
+        cmd.append('--cluster {0}'.format(self.cluster))
+        cmd.append('--conf {0}'.format(self.conf))
+        cmd.append('--connect-timeout {0}'.format(CEPH_CONNECT_TIMEOUT))
+        cmd.append('--name {0}'.format(name))
+        cmd.append('--keyring {0}'.format(keyring))
         cmd.append('auth')
         cmd.append('del')
         cmd.append(self.name)
@@ -3803,12 +3803,12 @@ class _CephAuth(object):
 
     def export_auth(self, okeyring, name, keyring):
         cmd = ['ceph']
-        cmd.append('--cluster {}'.format(self.cluster))
-        cmd.append('--conf {}'.format(self.conf))
-        cmd.append('--connect-timeout {}'.format(CEPH_CONNECT_TIMEOUT))
-        cmd.append('--name {}'.format(name))
-        cmd.append('--keyring {}'.format(keyring))
-        cmd.append('--out-file {}'.format(okeyring))
+        cmd.append('--cluster {0}'.format(self.cluster))
+        cmd.append('--conf {0}'.format(self.conf))
+        cmd.append('--connect-timeout {0}'.format(CEPH_CONNECT_TIMEOUT))
+        cmd.append('--name {0}'.format(name))
+        cmd.append('--keyring {0}'.format(keyring))
+        cmd.append('--out-file {0}'.format(okeyring))
         cmd.append('auth')
         cmd.append('export')
         cmd.append(self.name)
@@ -3819,19 +3819,19 @@ class _CephAuth(object):
                     mon_caps='', osd_caps='', mds_caps=''):
         caps = []
         if mon_caps:
-            caps.append('mon "{}"'.format(mon_caps))
+            caps.append('mon "{0}"'.format(mon_caps))
         if osd_caps:
-            caps.append('osd "{}"'.format(osd_caps))
+            caps.append('osd "{0}"'.format(osd_caps))
         if mds_caps:
-            caps.append('mds "{}"'.format(mds_caps))
+            caps.append('mds "{0}"'.format(mds_caps))
 
         if caps:
             cmd = ['ceph']
-            cmd.append('--cluster {}'.format(self.cluster))
-            cmd.append('--conf {}'.format(self.conf))
-            cmd.append('--connect-timeout {}'.format(CEPH_CONNECT_TIMEOUT))
-            cmd.append('--name {}'.format(name))
-            cmd.append('--keyring {}'.format(keyring))
+            cmd.append('--cluster {0}'.format(self.cluster))
+            cmd.append('--conf {0}'.format(self.conf))
+            cmd.append('--connect-timeout {0}'.format(CEPH_CONNECT_TIMEOUT))
+            cmd.append('--name {0}'.format(name))
+            cmd.append('--keyring {0}'.format(keyring))
             cmd.append('auth')
             cmd.append('caps')
             cmd.append(self.name)
@@ -3848,11 +3848,11 @@ class _CephAuth(object):
 
     def is_authed(self, name, keyring):
         cmd = ['ceph']
-        cmd.append('--cluster {}'.format(self.cluster))
-        cmd.append('--conf {}'.format(self.conf))
-        cmd.append('--connect-timeout {}'.format(CEPH_CONNECT_TIMEOUT))
-        cmd.append('--name {}'.format(name))
-        cmd.append('--keyring {}'.format(keyring))
+        cmd.append('--cluster {0}'.format(self.cluster))
+        cmd.append('--conf {0}'.format(self.conf))
+        cmd.append('--connect-timeout {0}'.format(CEPH_CONNECT_TIMEOUT))
+        cmd.append('--name {0}'.format(name))
+        cmd.append('--keyring {0}'.format(keyring))
         cmd.append('auth')
         cmd.append('get')
         cmd.append(self.name)
@@ -3895,14 +3895,14 @@ def keyring_manage(keyring,
     ret = {
         'name': keyring,
         'result': True,
-        'comment': 'Keyring: {} managed'.format(keyring),
+        'comment': 'Keyring: {0} managed'.format(keyring),
         'changes': {}
     }
 
     changes = ret['changes']
 
     if not os.path.isabs(keyring):
-        raise ValueError('Keyring: {} is not an abs path'.format(keyring))
+        raise ValueError('Keyring: {0} is not an abs path'.format(keyring))
 
     keyring = os.path.normpath(keyring)
     pdir = os.path.dirname(keyring)
@@ -3951,11 +3951,11 @@ def keyring_manage(keyring,
                     fcont = parser.items(entity_name)
                     cont = [('key', entity_key)]
                     if mon_caps:
-                        cont.append(('caps mon', '"{}"'.format(mon_caps)))
+                        cont.append(('caps mon', '"{0}"'.format(mon_caps)))
                     if osd_caps:
-                        cont.append(('caps osd', '"{}"'.format(osd_caps)))
+                        cont.append(('caps osd', '"{0}"'.format(osd_caps)))
                     if mds_caps:
-                        cont.append(('caps mds', '"{}"'.format(mds_caps)))
+                        cont.append(('caps mds', '"{0}"'.format(mds_caps)))
 
                     if set(cont) == set(fcont):
                         ret['comment'] = 'Keyring already managed, skip'
@@ -3969,14 +3969,14 @@ def keyring_manage(keyring,
     if update:
         cmd = ['ceph-authtool']
         cmd.append(keyring)
-        cmd.append('--name {}'.format(entity_name))
-        cmd.append('--add-key {}'.format(entity_key))
+        cmd.append('--name {0}'.format(entity_name))
+        cmd.append('--add-key {0}'.format(entity_key))
         if mon_caps:
-            cmd.append('--cap mon "{}"'.format(mon_caps))
+            cmd.append('--cap mon "{0}"'.format(mon_caps))
         if osd_caps:
-            cmd.append('--cap osd "{}"'.format(osd_caps))
+            cmd.append('--cap osd "{0}"'.format(osd_caps))
         if mds_caps:
-            cmd.append('--cap mds "{}"'.format(mds_caps))
+            cmd.append('--cap mds "{0}"'.format(mds_caps))
 
         _check_run(cmd)
 
@@ -4029,12 +4029,12 @@ def keyring_unmanage(keyring,
             parser.remove_section(name)
             _CephAuth.write_keyring(parser, keyring)
 
-            ret['changes'][keyring] = 'Entity: {} removed'.format(name)
+            ret['changes'][keyring] = 'Entity: {0} removed'.format(name)
             return ret
 
         os.remove(keyring)
         ret['changes'][keyring] = 'Keyring removed'
-        ret['comment'] = 'Entity: {} is the only one, keyring removed'.format(name)
+        ret['comment'] = 'Entity: {0} is the only one, keyring removed'.format(name)
         return ret
 
     ret['comment'] = 'Entity: {name} does not exist, skip'.format(name=name)
@@ -4053,7 +4053,7 @@ def auth_manage(entity_name,
     ret = {
         'name': entity_name,
         'result': True,
-        'comment': 'Entity: {} authenticated'.format(entity_name),
+        'comment': 'Entity: {0} authenticated'.format(entity_name),
         'changes': {}
     }
 
@@ -4083,7 +4083,7 @@ def auth_manage(entity_name,
 
             auth.export_auth(tmpkr, admin_name, admkr)
             if _CephAuth.compare_keyring(tmpkr, ourkr):
-                ret['comment'] = 'Entity: {} already managed, skip'\
+                ret['comment'] = 'Entity: {0} already managed, skip'\
                                  .format(entity_name)
                 return ret
 
@@ -4099,7 +4099,7 @@ def auth_manage(entity_name,
         auth.auth(admin_name, admkr)
         authchanges.append('New auth entity')
         changes[entity_name] = authchanges
-        ret['comment'] = 'New entity: {} authenticated'.format(entity_name)
+        ret['comment'] = 'New entity: {0} authenticated'.format(entity_name)
 
         return ret
     finally:
@@ -4118,7 +4118,7 @@ def auth_unmanage(entity_name,
     ret = {
         'name': entity_name,
         'result': True,
-        'comment': 'Entity: {} unauthenticated'.format(entity_name),
+        'comment': 'Entity: {0} unauthenticated'.format(entity_name),
         'changes': {}
     }
 
@@ -4140,7 +4140,7 @@ def auth_unmanage(entity_name,
             changes[entity_name] = 'Auth entity removed'
             return ret
 
-        ret['comment'] = 'Entity: {} does not exist, skip'.format(entity_name)
+        ret['comment'] = 'Entity: {0} does not exist, skip'.format(entity_name)
 
         return ret
     finally:
@@ -4153,7 +4153,7 @@ def conf_manage(ctx,
     ret = {
         'name': cluster,
         'result': True,
-        'comment': 'ceph conf for: {} managed'.format(cluster),
+        'comment': 'ceph conf for: {0} managed'.format(cluster),
         'changes': {}
     }
 
@@ -4228,7 +4228,7 @@ def conf_manage(ctx,
     #     parser.remove_section(sec)
     #
     #     cfgchanges[sec] = []
-    #     cfgchanges[sec].append('Remove section: {}'.format(sec))
+    #     cfgchanges[sec].append('Remove section: {0}'.format(sec))
     #
     #     for opt, val in fopts:
     #         cfgchanges[sec].append('Remove option: {opt} = {val}'.format(
@@ -4238,7 +4238,7 @@ def conf_manage(ctx,
         parser.add_section(sec)
 
         cfgchanges[sec] = []
-        cfgchanges[sec].append('New section: {}'.format(sec))
+        cfgchanges[sec].append('New section: {0}'.format(sec))
 
         opts = ctx[sec].items()
 
@@ -4282,6 +4282,6 @@ def conf_manage(ctx,
         changes[conf] = cfgchanges
         cfg.write()
     else:
-        ret['comment'] = 'ceph conf for: {} is already managed, skip'.format(cluster)
+        ret['comment'] = 'ceph conf for: {0} is already managed, skip'.format(cluster)
 
     return ret

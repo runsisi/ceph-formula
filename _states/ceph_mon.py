@@ -45,7 +45,7 @@ def running(name,
     ret = {
         'name': name,
         'result': True,
-        'comment': 'MON: mon.{} is running'.format(name),
+        'comment': 'MON: mon.{0} is running'.format(name),
         'changes': {}
     }
 
@@ -64,7 +64,7 @@ def dead(name,
     ret = {
         'name': name,
         'result': True,
-        'comment': 'MON: mon.{} is dead'.format(name),
+        'comment': 'MON: mon.{0} is dead'.format(name),
         'changes': {}
     }
 
@@ -84,7 +84,7 @@ def mod_watch(name,
     ret = {
         'name': name,
         'result': True,
-        'comment': 'MON: mon.{} restarted'.format(name),
+        'comment': 'MON: mon.{0} restarted'.format(name),
         'changes': {}
     }
 
