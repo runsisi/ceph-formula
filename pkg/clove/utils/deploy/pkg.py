@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
-
 # runsisi AT hust.edu.cn
 
 import logging
 import os
 import tempfile
-from ..util.repo import yum_repo
-from ..util.cmd import (run, check_run, CommandExecutionError)
+from ..repo import yum_repo
+from ..cmd import (run, check_run, CommandExecutionError)
 
 LOG = logging.getLogger(__name__)
 

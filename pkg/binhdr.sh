@@ -22,7 +22,7 @@ BLINK=$(tput blink)
 REVERSE=$(tput smso)
 UNDERLINE=$(tput smul)
 
-BOOTSTRAP=clove/bootstrap/bootstrap.py
+BOOTSTRAP=clove/bootstrap.py
 
 trap 'cleanup' EXIT
 
@@ -32,24 +32,20 @@ cleanup() {
 }
 
 logerror() {
-    msg=$1
-    printf "${RED}[ERROR] ${NORMAL}%s\nExiting now!\n" "$msg" 1>&2
+    printf "${RED}[ERROR] ${NORMAL}%s\nExiting now!\n" "$1" 1>&2
     exit 1
 }
 
 logwarning() {
-    msg=$1
-    printf "${MAGENTA}[WARN ] ${NORMAL}%s\n" "$msg"
+    printf "${MAGENTA}[WARN ] ${NORMAL}%s\n" "$1"
 }
 
 loginfo() {
-    msg=$1
-    printf "${BLUE}[INFO ] ${NORMAL}%s\n" "$msg"
+    printf "${BLUE}[INFO ] ${NORMAL}%s\n" "$1"
 }
 
 logdebug() {
-    msg=$1
-    printf "${BLACK}[DEBUG] ${NORMAL}%s\n" "$msg"
+    printf "${BLACK}[DEBUG] ${NORMAL}%s\n" "$1"
 }
 
 lower() {
@@ -148,7 +144,7 @@ fi
 
 query
 
-logdebug 'Unpacking...'
+logdebug 'Unpacking..'
 
 tmpdata=$(mktemp --suffix=.clove)
 tail -n +__HDRLINECNT__ $0 > $tmpdata
@@ -160,7 +156,7 @@ if ! which xz > /dev/null 2>&1; then
 fi
 
 if which md5sum > /dev/null 2>&1; then
-    logdebug 'Verifying MD5...'
+    logdebug 'Verifying MD5..'
 
     csum=$(md5sum -b $tmpdata | awk '{print $1}')
     if [ $csum != __CSUM__ ]; then
@@ -180,7 +176,8 @@ if [ ! -f $tmpdir/$BOOTSTRAP ];  then
     logerror "$BOOTSTRAP does not exist in package"
 fi
 
-loginfo 'Bootstrap...'
+loginfo 'Bootstrap..'
+
 if ! python $tmpdir/$BOOTSTRAP $@; then
     logerror 'Bootstrap process failed'
 fi

@@ -21,24 +21,31 @@ REVERSE=$(tput smso)
 UNDERLINE=$(tput smul)
 
 logerror() {
-    msg=$1
-    printf "${RED}[ERROR] ${NORMAL}%s\nExiting now!\n" "$msg" 1>&2
+    printf "${RED}[ERROR] ${NORMAL}%s\nExiting now!\n" "$1" 1>&2
     exit 1
 }
 
 logwarning() {
-    msg=$1
-    printf "${MAGENTA}[WARN ] ${NORMAL}%s\n" "$msg"
+    printf "${MAGENTA}[WARN ] ${NORMAL}%s\n" "$1"
 }
 
 loginfo() {
-    msg=$1
-    printf "${BLUE}[INFO ] ${NORMAL}%s\n" "$msg"
+    printf "${BLUE}[INFO ] ${NORMAL}%s\n" "$1"
 }
 
 logdebug() {
-    msg=$1
-    printf "${BLACK}[DEBUG] ${NORMAL}%s\n" "$msg"
+    printf "${BLACK}[DEBUG] ${NORMAL}%s\n" "$1"
+}
+
+spin() {
+    __cond="$1"
+    __sp='/-\|'
+    printf ' '
+    while [ -f $__cond ]; do
+        printf '\b%.1s' "$__sp"
+        sleep 1.0
+        __sp=${__sp#?}${__sp%???}
+    done &
 }
 
 lower() {

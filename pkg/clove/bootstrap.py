@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 # runsisi AT hust.edu.cn
 
 from __future__ import absolute_import
@@ -11,11 +10,10 @@ import logging
 import logging.handlers
 import argparse
 
-BOOTSTRAP_DIR = os.path.dirname(__file__)
-sys.path.append(BOOTSTRAP_DIR)
-import clove.util.log as clovelog
-import clove.util.distro as clovedistro
-import clove.deploy as clovedeploy
+CLOVE_DIR = os.path.dirname(__file__)
+sys.path.append(CLOVE_DIR)
+import utils.log as clovelog
+import utils.deploy as clovedeploy
 
 LOG = logging.getLogger('bootstrap')
 
@@ -53,11 +51,9 @@ def main():
     logger.addHandler(sh)
     logger.addHandler(fh)
 
-    clove_dir = os.path.abspath(os.path.join(BOOTSTRAP_DIR, '../'))
-
     LOG.debug('Setup clove deploy')
-    if not clovedeploy.setup_deploy(clove_dir):
-        LOG.fatal('Call setup_deploy failed')
+    if not clovedeploy.setup_deploy(CLOVE_DIR):
+        LOG.error('Call setup_deploy failed')
         return 1
 
     post_install()

@@ -1,0 +1,2 @@
+Put all packages and its dependencies here, and use createrepo to create
+a local yum repository.

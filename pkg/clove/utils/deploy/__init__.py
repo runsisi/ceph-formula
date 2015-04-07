@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
-
 # runsisi AT hust.edu.cn
 
 import os
 import ConfigParser
 import logging
 import shlex
-from ..util.cfg import Cfg
-from ..util.cmd import (check_run, CommandExecutionError)
-from ..util.distro import distribution_information
+from ..cfg import Cfg
+from ..cmd import (check_run, CommandExecutionError)
+from ..distro import distribution_information
 from .pkg import (backup_repo, setup_repo, restore_repo, install_pkgs)
 
 LOG = logging.getLogger(__name__)
@@ -16,7 +15,6 @@ LOG = logging.getLogger(__name__)
 
 def setup_deploy(clove_dir):
     conf = os.path.join(clove_dir, 'clove.ini')
-    pkgs_dir = os.path.join(clove_dir, 'packages')
 
     # get package list to install
     cfg = Cfg(conf)
@@ -25,6 +23,7 @@ def setup_deploy(clove_dir):
         LOG.error('clove.ini is missing?')
         return False
     try:
+        pkgs_dir = parser.get('deploy', 'pkgs_dir')
         pkgs = parser.get('deploy', 'pkgs')
         timeout = parser.get('deploy', 'timeout')
     except (ConfigParser.NoSectionError, ConfigParser.NoOptionError) as e:
