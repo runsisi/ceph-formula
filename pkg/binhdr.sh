@@ -63,6 +63,8 @@ detect_platform() {
         __PLATFORM='linux'
     elif ! case $kernel in cygwin*) false;; esac; then
         __PLATFORM='cygwin'
+    elif ! case $kernel in mingw*) false;; esac; then
+        __PLATFORM='mingw'
     elif [ $kernel = 'freebsd' ]; then
         __PLATFORM='freebsd'
     else
