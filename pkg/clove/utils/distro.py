@@ -9,11 +9,11 @@ def distribution_information():
         pass
     v = Distro()
 
-    (distro, release, codename) = _distribution_information()
-    distro = _normalized_distro_name(distro)
+    (name, release, codename) = _distribution_information()
+    name = _normalized_distro_name(name)
     release = _normalized_release(release)
 
-    (v.distro, v.major, v.codename) = distro, release.major, codename
+    (v.name, v.major, v.codename) = name, release.major, codename
 
     return v
 
@@ -46,17 +46,17 @@ def _distribution_information():
     )
 
 
-def _normalized_distro_name(distro):
-    distro = distro.lower()
-    if distro.startswith(('redhat', 'red hat')):
+def _normalized_distro_name(name):
+    name = name.lower()
+    if name.startswith(('redhat', 'red hat')):
         return 'redhat'
-    elif distro.startswith('scientific'):
+    elif name.startswith('scientific'):
         return 'scientific'
-    elif distro.startswith(('suse', 'opensuse')):
+    elif name.startswith(('suse', 'opensuse')):
         return 'suse'
-    elif distro.startswith('centos'):
+    elif name.startswith('centos'):
         return 'centos'
-    return distro
+    return name
 
 
 def _normalized_release(release):

@@ -51,12 +51,15 @@ def main():
     logger.addHandler(sh)
     logger.addHandler(fh)
 
-    LOG.debug('Setup clove deploy')
-    if not clovedeploy.setup_deploy(CLOVE_DIR):
-        LOG.error('Call setup_deploy failed')
+    LOG.debug('Setup clove pkgs')
+    if not clovedeploy.setup_pkgs(CLOVE_DIR):
+        LOG.error('setup_pkgs failed')
         return 1
 
-    post_install()
+    LOG.debug('Post install process')
+    if not post_install():
+        LOG.error('post_install failed')
+        return 1
 
     return 0
 
@@ -73,6 +76,12 @@ def parse_args():
 
 
 def post_install():
+    LOG.debug('Setup salt environment')
+
+    if not clovedeploy.setup_salt():
+        LOG.error('setup_salt failed')
+        return False
+
     notes = '''
 1) Define "/etc/salt/roster" if you want to use salt-ssh, refer
    to "/etc/clove/examples/etc/roster" as an example.
@@ -81,6 +90,12 @@ def post_install():
    '''
     print(notes)
 
+    return True
+
 
 if __name__ == '__main__':
-    sys.exit(main())
+    ret = main()
+    if ret:
+        LOG.fatal('Bootstrap failed, see {0} for more details'
+                  .format('/var/log/clove_deploy.log'))
+    sys.exit(ret)

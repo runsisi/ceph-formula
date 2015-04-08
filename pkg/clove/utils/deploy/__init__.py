@@ -13,7 +13,15 @@ from .pkg import (backup_repo, setup_repo, restore_repo, install_pkgs)
 LOG = logging.getLogger(__name__)
 
 
-def setup_deploy(clove_dir):
+def setup_pkgs(clove_dir):
+    # gen packages dir
+    distro = distribution_information()
+    if distro.name in ('redhat', 'centos'):
+        pkgs_dir = os.path.join(clove_dir, 'pkgs-el{0}'.format(distro.major))
+    else:
+        LOG.error('Not supported distribution')
+        return False
+
     conf = os.path.join(clove_dir, 'clove.ini')
 
     # get package list to install
@@ -23,7 +31,6 @@ def setup_deploy(clove_dir):
         LOG.error('clove.ini is missing?')
         return False
     try:
-        pkgs_dir = parser.get('deploy', 'pkgs_dir')
         pkgs = parser.get('deploy', 'pkgs')
         timeout = parser.get('deploy', 'timeout')
     except (ConfigParser.NoSectionError, ConfigParser.NoOptionError) as e:
@@ -59,20 +66,7 @@ def setup_deploy(clove_dir):
 
     # install ceph-formula
     LOG.debug('Install ceph-formula')
-    if not setup_formula(clove_dir):
-        LOG.warning('Call setup_formula failed')
-        return False
 
-    # setup saltstack environment
-    LOG.debug('Setup saltstack')
-    if not setup_salt():
-        LOG.warning('Call setup_salt failed')
-        return False
-
-    return True
-
-
-def setup_formula(clove_dir):
     formula_dir = os.path.join(clove_dir, 'ceph-formula')
     installer = os.path.join(formula_dir, 'install.sh')
 
@@ -96,7 +90,7 @@ def setup_salt():
     # TODO: check 'init' or 'systemd'
     # TODO: open ports instead of shutdown firewall
 
-    if distro.distro in ('redhat', 'centos'):
+    if distro.name in ('redhat', 'centos'):
         if distro.major == '7':
             try:
                 # TODO: check 'iptables'?

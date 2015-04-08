@@ -18,15 +18,18 @@ cleanup() {
 
 usage() {
     printf "Usage:\n"
-    printf "   $(basename $0) [-o /path/to/output]\n\n"
+    printf "   $(basename $0) [-d distro] [-o /path/to/output]\n\n"
 
     exit 1
 }
 
 while getopts 'o:' opt; do
     case $opt in
+        d)
+        distro=$OPTARG
+        ;;
         o)
-        out=$OPTARG
+        outdir=$OPTARG
         ;;
         ?)
         usage
@@ -40,16 +43,24 @@ if [ $# -ne 0 ]; then
     usage
 fi
 
-dir=$CWD
-if [ x$out = x ]; then
-    out=$dir/clove.bin
-else
-    dir=$(dirname $out)
-    mkdir -p $dir
-    if [ -d $out ]; then
-        logerror 'Output path is an existing directory'
-    fi
+if [ x$distro = x ]; then
+    distro=el7
 fi
+
+if [ ! -d $CWD/pkgs-$distro ]; then
+    logerror 'No packages found'
+fi
+
+if [ x$out = x ]; then
+    outdir=$CWD
+else
+    if [ -f $outdir ]; then
+        logerror 'Output path is an existing file'
+    fi
+    mkdir -p $outdir
+fi
+
+out=$outdir/clove-$distro.bin
 
 # create a .xz compressed fileC
 
@@ -62,6 +73,10 @@ fi
 tmpdir=$(mktemp --directory --suffix=.clove)
 
 cp -rf $CWD/clove   $tmpdir
+
+# collect packages
+
+cp -rf $CWD/pkgs-$distro    $tmpdir/clove/
 
 # collect ceph-formula
 
@@ -93,7 +108,7 @@ if ! sh $CWD/genbin.sh -o $tmpbin $tmpxz; then
     error 'Failed to generate'
 fi
 
-loginfo "Output to dir $out"
+loginfo "Output to $out"
 mv $tmpbin $out
 
 loginfo 'success!'
