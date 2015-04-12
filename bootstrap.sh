@@ -30,7 +30,7 @@ if which systemctl > /dev/null 2>&1; then
     systemctl stop firewalld
     systemctl enable salt-master
     systemctl restart salt-master
-else
+elif which chkconfig > /dev/null 2>&1; then
     chkconfig iptables off
     service iptables stop
     chkconfig salt-master on
@@ -45,7 +45,7 @@ printf '
    to "examples/etc/roster" as an example.
 2) Please modify pillar data under "%s"
    to fit your need.\n
-' $ROOTDIR/pillar/ceph/
+' /etc/clove/deploy/ceph/
 
 
 

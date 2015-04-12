@@ -38,7 +38,7 @@ def setup_pkgs(clove_dir):
         return False
 
     timeout = float(timeout)
-    pkgs = pkgs.split(',')
+    pkgs = [x.strip() for x in pkgs.split(',')]
 
     if not pkgs[-1]:
         pkgs = pkgs[:-1]

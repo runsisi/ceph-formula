@@ -23,7 +23,7 @@ usage() {
     exit 1
 }
 
-while getopts 'o:' opt; do
+while getopts 'd:o:' opt; do
     case $opt in
         d)
         distro=$OPTARG
@@ -51,9 +51,10 @@ if [ ! -d $CWD/pkgs-$distro ]; then
     logerror 'No packages found'
 fi
 
-if [ x$out = x ]; then
+if [ x$outdir = x ]; then
     outdir=$CWD
 else
+
     if [ -f $outdir ]; then
         logerror 'Output path is an existing file'
     fi

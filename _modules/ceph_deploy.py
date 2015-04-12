@@ -21,11 +21,9 @@ import ConfigParser
 import struct
 import base64
 import uuid
-import sys
 
 # Import salt libs
 from salt import utils
-from salt.exceptions import CommandExecutionError
 
 __virtualname__ = 'ceph_deploy'
 
@@ -2869,17 +2867,12 @@ class _CephMon(object):
 
         changes = ret['changes']
         datachanges = []
-        daemonchanges = []
 
         mon_id = self.mon_id
-        name = self.name
         mon_data = self.mon_data
-        daemon = _CephMonDaemon(self.mon_id, self.cluster)
 
         # detect existing MON
         self.init()
-
-        mkfs = True
 
         if self._state == _CephMonState.FREE:
             # not prepared
@@ -3076,7 +3069,7 @@ class _CephMon(object):
             if daemon.is_running():
                 if self._state == _CephMonState.ACTIVE:
                     ret['comment'] = 'MON: mon.{0} is already activated, skip'\
-                    .format(mon_id)
+                                     .format(mon_id)
                     return ret
 
                 daemon.restart()

@@ -1,8 +1,13 @@
 {% from 'ceph/bootstrap/lookup.jinja' import bootstrap with context %}
 
-{% set master_ip = bootstrap.salt.minion.master_ip %}
+{% set master = bootstrap.salt.minion.master %}
 {% set pkgs = bootstrap.salt.minion.pkgs | default({}) %}
 {% set repos = bootstrap.repo.repos | default({}) %}
+
+{% set clove = {
+    'master': master,
+    'id': grains['id'],
+} %}
 
 include:
   - ceph.bootstrap.repo
@@ -24,7 +29,10 @@ ceph.bootstrap.minion.setup:
   file.managed:
     - name: /etc/salt/minion.d/clove.conf
     - makedirs: True
-    - contents: 'master: {{ master_ip }}'
+    - source: salt://ceph/bootstrap/files/clove.conf
+    - template: jinja
+    - context:
+        clove: {{ clove }}
 
 ceph.bootstrap.salt.minion.start:
   service.running:

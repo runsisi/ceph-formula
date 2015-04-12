@@ -85,7 +85,7 @@ def post_install():
     notes = '''
 1) Define "/etc/salt/roster" if you want to use salt-ssh, refer
    to "/etc/clove/examples/etc/roster" as an example.
-2) Please modify pillar data under "/opt/clove/deploy/pillar/ceph/"
+2) Please modify pillar data under "/etc/clove/deploy/ceph/"
    to fit your need.
    '''
     print(notes)

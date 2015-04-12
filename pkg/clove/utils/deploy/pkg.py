@@ -60,18 +60,26 @@ def install_pkgs(pkgs, timeout):
 
     run(cmd)
 
+    LOG.debug('yum clean all')
+    cmd = ['yum']
+    cmd.append('clean')
+    cmd.append('all')
+
+    run(cmd)
+
     LOG.debug('Install pkgs: {0}'.format(pkgs))
 
-    cmd = ['yum']
-    cmd.append('-y')
-    cmd.append('install')
-    cmd.extend(pkgs)
+    for pkg in pkgs:
+        cmd = ['yum']
+        cmd.append('-y')
+        cmd.append('install')
+        cmd.append(pkg)
 
-    try:
-        check_run(cmd, timeout)
-    except CommandExecutionError as e:
-        LOG.warning('Failed to install pkgs: {0!r}\nReason: {1}'.format(pkgs, e))
-        return False
+        try:
+            check_run(cmd, timeout)
+        except CommandExecutionError as e:
+            LOG.warning('Failed to install pkg: {0}\nReason: {1}'.format(pkg, e))
+            return False
 
     return True
 

@@ -12,7 +12,7 @@ ROOTDIR=/opt/clove/deploy
 # prepare directories
 
 mkdir -p /etc/salt/master.d
-mkdir -p /etc/clove
+mkdir -p /etc/clove/deploy
 mkdir -p $ROOTDIR/{salt,pillar}
 
 # remove examples
@@ -30,10 +30,11 @@ rm -rf $ROOTDIR/salt/ceph
 rm -rf $ROOTDIR/salt/_modules
 rm -rf $ROOTDIR/salt/_states
 
-# remove pillars
+# backup pillars
 
-rm -rf $ROOTDIR/pillar/ceph
-rm -rf $ROOTDIR/pillar/top.sls
+if [ -d /etc/clove/deploy/ceph ]; then
+    mv -f /etc/clove/deploy/ceph /etc/clove/deploy/ceph.bak
+fi
 
 # copy examples
 
@@ -52,5 +53,5 @@ cp -r $CWD/_states/ $ROOTDIR/salt/
 
 # copy pillars
 
-cp -r $CWD/examples/pillar/ceph/ $ROOTDIR/pillar/
-cp $CWD/examples/pillar/top.sls $ROOTDIR/pillar/
+cp -r $CWD/examples/pillar/ceph/ /etc/clove/deploy/
+cp -f $CWD/examples/pillar/top.sls /etc/clove/deploy/
