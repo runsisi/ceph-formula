@@ -83,10 +83,10 @@ def post_install():
         return False
 
     notes = '''
-1) Define "/etc/salt/roster" if you want to use salt-ssh, refer
+1) Define "/etc/salt/roster" before deploy salt minions, refer
    to "/etc/clove/examples/etc/roster" as an example.
-2) Please modify pillar data under "/etc/clove/deploy/ceph/"
-   to fit your need.
+2) Please modify config file "/etc/clove/deploy/clove.sls" to
+   fit your cluster.
    '''
     print(notes)
 

@@ -41,11 +41,7 @@ echo
 echo OK!
 
 printf '
-1) Define "/etc/salt/roster" if you want to use salt-ssh, refer
+1) Define "/etc/salt/roster" before deploy salt minions, refer
    to "examples/etc/roster" as an example.
-2) Please modify pillar data under "%s"
-   to fit your need.\n
-' /etc/clove/deploy/ceph/
-
-
-
+2) Please modify config file "/etc/clove/deploy/clove.sls" to
+   fit your cluster.\n'
