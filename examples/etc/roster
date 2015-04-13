@@ -14,23 +14,3 @@ ceph3:
   host: 192.168.133.13
   user: root
   passwd: vagrant
-ceph4:
-  host: 192.168.133.14
-  user: root
-  passwd: vagrant
-ceph5:
-  host: 192.168.133.15
-  user: root
-  passwd: vagrant
-ceph6:
-  host: 192.168.133.16
-  user: root
-  passwd: vagrant
-ceph7:
-  host: 192.168.133.17
-  user: root
-  passwd: vagrant
-ceph8:
-  host: 192.168.133.18
-  user: root
-  passwd: vagrant

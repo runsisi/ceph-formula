@@ -1,13 +1,13 @@
 ceph.mon.setup:
   salt.state:
-    - tgt: 'brs17,brs182'
+    - tgt: 'ceph1,ceph2,ceph3'
     - tgt_type: list
     - sls:
       - ceph.mon
 
 ceph.osd.setup:
   salt.state:
-    - tgt: 'brs17,brs182'
+    - tgt: 'ceph1,ceph2,ceph3'
     - tgt_type: list
     - sls:
       - ceph.osd
@@ -16,7 +16,7 @@ ceph.osd.setup:
 
 ceph.client.setup:
   salt.state:
-    - tgt: 'brs17'
+    - tgt: 'ceph0'
     - tgt_type: list
     - sls:
       - ceph.client

@@ -7,8 +7,8 @@
 set -e
 
 CWD=$(cd -P $(dirname $0) && pwd -P)
-SALTDIR=/opt/clove/deploy
-PILLARDIR=/etc/clove/deploy
+SALTDIR=/opt/clove_deploy
+PILLARDIR=/etc/clove_deploy
 
 # prepare directories
 
@@ -18,7 +18,7 @@ mkdir -p /etc/salt/master.d
 
 # remove examples
 
-rm -rf /etc/clove/examples
+rm -rf /etc/clove_deploy/examples
 
 # remove master configure file
 
@@ -36,7 +36,7 @@ fi
 
 # copy examples
 
-cp -r $CWD/examples/ /etc/clove/
+cp -r $CWD/examples/ /etc/clove_deploy/
 
 # copy master configure file
 

@@ -84,8 +84,8 @@ def post_install():
 
     notes = '''
 1) Define "/etc/salt/roster" before deploy salt minions, refer
-   to "/etc/clove/examples/etc/roster" as an example.
-2) Please modify config file "/etc/clove/deploy/clove.sls" to
+   to "/etc/clove_deploy/examples/etc/roster" as an example.
+2) Please modify config file "/etc/clove_deploy/clove.sls" to
    fit your cluster.
    '''
     print(notes)

@@ -61,7 +61,7 @@ else
     mkdir -p $outdir
 fi
 
-out=$outdir/clove-$distro.bin
+out=$outdir/clove-deploy.$distro.bin
 
 # create a .xz compressed fileC
 
