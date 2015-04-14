@@ -61,7 +61,7 @@ else
     mkdir -p $outdir
 fi
 
-out=$outdir/clove-deploy.$distro.bin
+out=$outdir/clove-deploy-$(date +%Y-%m-%d).$distro.bin
 
 # create a .xz compressed fileC
 
@@ -73,11 +73,11 @@ fi
 
 tmpdir=$(mktemp --directory --suffix=.clove)
 
-cp -rf $CWD/clove   $tmpdir
+cp -rf $CWD/clove $tmpdir
 
 # collect packages
 
-cp -rf $CWD/pkgs-$distro    $tmpdir/clove/
+cp -rf $CWD/pkgs-$distro $tmpdir/clove/
 
 # collect ceph-formula
 

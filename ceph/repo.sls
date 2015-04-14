@@ -1,12 +1,10 @@
 {% from 'ceph/lookup.jinja' import ceph with context %}
 
-{% set manage_repo = ceph.repo.manage_repo | default(0, True) %}
-{% set repos = ceph.repo.repos | default({}, True) %}
+{% set repos = ceph.repos | default({}) %}
 
-{% if manage_repo %}
 {% for repo in repos %}
 
-ceph.repo.{{ repo.humanname }}.setup:
+ceph.repo.{{ repo.name }}:
   pkgrepo.managed:
 {% if grains['os_family'] in ['Debian',] %}
     {% set key_url = repo.key_url | default('') | trim %}
@@ -16,7 +14,7 @@ ceph.repo.{{ repo.humanname }}.setup:
     - dist: {{ repo.dist }}
     - file: {{ repo.file }}
     {% if key_url %}
-    - key_url: {{ repo.key_url }}
+    - key_url: {{ key_url }}
     {% endif %}
     {% if ppa %}
     - ppa: {{ ppa }}
@@ -33,4 +31,3 @@ ceph.repo.{{ repo.humanname }}.setup:
 {% endif %}
 
 {% endfor %}
-{% endif %}

@@ -15,7 +15,7 @@ include:
   - ceph.conf
 
 {% if auth_type == 'cephx' %}
-ceph.mon.dummy.files.create:
+ceph.mon.dummy.files:
   file.managed:
     - names:
         - /etc/ceph/{{ cluster }}.client.admin.keyring
@@ -24,12 +24,12 @@ ceph.mon.dummy.files.create:
     - makedirs: True
     - replace: False
     - require:
-      - ceph_conf: ceph.conf.setup
+      - ceph_conf: ceph.conf
     - require_in:
-      - ceph_mon: ceph.mon.create
+      - ceph_mon: ceph.mon
 {% endif %}
 
-ceph.mon.create:
+ceph.mon:
   ceph_mon.present:
     - name: {{ mon_id }}
     - auth_type: {{ auth_type }}
@@ -37,16 +37,15 @@ ceph.mon.create:
     - mon_addr: {{ mon_addr }}
     - cluster: {{ cluster }}
     - require:
-      - ceph_conf: ceph.conf.setup
+      - ceph_conf: ceph.conf
 
-ceph.service.enable:
+ceph.mon.daemon:
   service.running:
     - name: ceph
     - enable: True
-    - requre:
-      - ceph_mon: ceph.mon.create
     - watch:
-      - ceph_conf: ceph.conf.setup
+      - ceph_mon: ceph.mon
+      - ceph_conf: ceph.conf
 
 {% if auth_type == 'cephx' %}
 
@@ -62,9 +61,9 @@ ceph.client.admin.auth:
     - mds_caps: allow
     - cluster: {{ cluster }}
     - require:
-      - ceph_mon: ceph.mon.create
+      - ceph_mon: ceph.mon.daemon
 
-ceph.client.admin.keyring.create:
+ceph.client.admin.keyring:
   ceph_key.keyring_present:
     - name: /etc/ceph/{{ cluster }}.client.admin.keyring
     - entity_name: client.admin
@@ -83,7 +82,7 @@ ceph.client.bootstrap-osd.auth:
     - mon_caps: allow profile bootstrap-osd
     - cluster: {{ cluster }}
     - require:
-      - ceph_key: ceph.client.admin.keyring.create
+      - ceph_key: ceph.client.admin.keyring
 {% endif %}
 
 {% if bootstrap_mds_key %}
@@ -96,7 +95,7 @@ ceph.client.bootstrap-mds.auth:
     - mon_caps: allow profile bootstrap-mds
     - cluster: {{ cluster }}
     - require:
-      - ceph_key: ceph.client.admin.keyring.create
+      - ceph_key: ceph.client.admin.keyring
 {% endif %}
 
 {% endif %}

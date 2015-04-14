@@ -1,82 +1,44 @@
 ceph:
-  bootstrap:
+  ### repository for ceph and all other packages ###
+  repos:
+    - name: clove
+      humanname: All packages for ceph and others
+      baseurl: http://10.118.202.154/ZXTECS/0.87/el7/x86_64
+      gpgcheck: 0
 
-    ### salt parameters ###
+  ### NTP servers ###
+  ntp_servers:
+    - 192.168.233.10
 
-    salt:
-      minion:
-        master: 10.118.202.17
-        pkgs:
-          salt-minion: 2014.7.0-3.el7
+  ### salt-minion parameters ###
+  minion_master: 192.168.233.10
+  minion_version: 2014.7.0-3.el7
 
+  ### The version of ceph to be installed ###
+  ceph_version: 0.87-0.el7.centos
 
-    ### NTP parameters ###
-
-    ntp:
-      pkg: ntp
-      svc: ntpd
-      cfile: /etc/ntp.conf
-      srvs:
-        - 192.168.133.10
-
-
-    ### repositories for ceph dependencies ###
-
-    repo:
-      cleanup: 1
-      repos:
-        - name: ceph-dep
-          humanname: ceph-dep
-          baseurl: http://10.118.202.154/ceph/ceph-dep/0.87/el7/$basearch
-          gpgcheck: 0
-
-
-  ### ceph packages to be installed ###
-
-  pkg:
-    pkgs:
-      ceph: 0.87-0.el7.centos
-
-
-  ### ceph yum repository ###
-
-  repo:
-    manage_repo: 1
-    repos:
-      - name: ceph
-        humanname: ceph
-        baseurl: http://10.118.202.154/rpm-giant/el7/$basearch
-        gpgcheck: 0
-
-
-  ### cluster keys ###
-
+  ### ceph cluster keys ###
   mon_key: AQAAA8FU2AnFEhAA/5cDGZk5PjFjUMy8q7+Csw==
   admin_key: AQAOA8FU0GaGKRAA6BW1dc/zwTcah70r6Ow1mg==
   bootstrap_osd_key: AQAcA8FU8LWzHhAAN7+cwxF7KJuf5vSo52fPsQ==
   bootstrap_mds_key: AQAmA8FUgETmGBAAO6AX1NUUemA7heYnvFlQ9w==
 
-
-  ### cluster parameters ###
-
-  conf:
+  ### ceph cluster parameters ###
+  ceph_config:
     global:
       #fsid: cbc99ef9-fbc3-41ad-a726-47359f8d84b3
-      #mon_initial_members: ceph0
-      #mon_host: 192.168.133.10:6789,192.168.133.11:6789,192.168.133.12:6789,
-      #public_network: 192.168.133.0/24
-      #cluster_network: 192.168.134.0/24
+      #mon_initial_members: ceph1
+      #mon_host: 192.168.233.11,192.168.233.12,192.168.233.13,
+      #public_network: 192.168.233.0/24
+      #cluster_network: 192.168.234.0/24
 
-
-  ### OSD(s) to be created ###
-
-  osd:
-    osds:
-      #- data: /dev/sdb
-      #  journal: /dev/sdf
-      #- data: /dev/sdc
-      #  journal: /dev/sdf
-      #- data: /dev/sdd
-      #  journal: /dev/sdf
-      #- data: /dev/sde
-      #  journal: /dev/sdf
+  ### ceph OSD(s) to be created ###
+  osds:
+    ### data and journal on the same disk /dev/sdb
+    #- data: /dev/sdb
+    ### data on /dev/sdc and journal on /dev/sde
+    #- data: /dev/sdc
+    #  journal: /dev/sde
+    ### data on /dev/sdd and journal on /dev/sde
+    #- data: /dev/sdd
+    #  journal: /dev/sde

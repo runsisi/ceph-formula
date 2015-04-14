@@ -1,26 +1,16 @@
 {% from 'ceph/lookup.jinja' import ceph with context %}
 
-{% set manage_repo = ceph.repo.manage_repo | default(0, True) %}
-{% set repos = ceph.repo.repos | default({}, True) %}
-{% set pkgs = ceph.pkg.pkgs | default({}, True) %}
+{% set repos = ceph.repos | default({}, True) %}
+{% set version = ceph.ceph_version %}
 
-{% if manage_repo %}
 include:
   - ceph.repo
-{% endif %}
 
-{% for pkg, ver in pkgs.iteritems() %}
-
-ceph.pkg.{{ pkg }}.{{ ver }}.install:
+ceph.pkg:
   pkg.installed:
-    - name: {{ pkg }}
-    - version: {{ ver }}
-    {% if manage_repo %}
+    - name: ceph
+    - version: {{ version }}
     - require:
       {% for repo in repos %}
-      - pkgrepo: ceph.repo.{{ repo.humanname }}.setup
+      - pkgrepo: ceph.repo.{{ repo.name }}
       {% endfor %}
-    {% endif %}
-
-{% endfor %}
-
