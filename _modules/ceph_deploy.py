@@ -27,7 +27,7 @@ from salt import utils
 
 __virtualname__ = 'ceph_deploy'
 
-COMMAND_TIMEOUT = 30                    # 30 seconds
+COMMAND_TIMEOUT = 180                   # 180 seconds
 
 CEPH_CLUSTER = 'ceph'                   # Default cluster name
 CEPH_CONNECT_TIMEOUT = 30               # 60 seconds
@@ -135,7 +135,7 @@ def _check_run(cmd, **kwargs):
     (code, stdout, stderr) = _run(cmd, **kwargs)
 
     if code:
-        raise RuntimeError(cmd, stderr, code)
+        raise RuntimeError(cmd, stdout, stderr, code)
 
     return code, stdout, stderr
 
