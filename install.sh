@@ -30,7 +30,7 @@ rm -rf $SALTDIR/*
 
 # backup pillars
 
-if [ -f $PILLARDIR/clove.sls ]; then
+if [ ! -f $PILLARDIR/clove.sls.bak -a -f $PILLARDIR/clove.sls ]; then
     mv -f $PILLARDIR/{clove.sls,clove.sls.bak}
 fi
 
