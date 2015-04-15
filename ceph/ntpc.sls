@@ -32,4 +32,5 @@ ceph.ntp.daemon:
     - name: ntpd
     - enable: True
     - watch:
+      - pkg: ceph.ntp.pkg
       - file: ceph.ntp.conf

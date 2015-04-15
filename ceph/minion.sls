@@ -1,8 +1,6 @@
 {% from 'ceph/lookup.jinja' import ceph with context %}
 
 {% set master = ceph.minion_master %}
-{% set version = ceph.minion_version %}
-{% set repos = ceph.repos | default({}, True) %}
 
 {% set clove = {
     'master': master,
@@ -13,13 +11,12 @@ include:
   - ceph.repo
 
 ceph.minion.pkg:
-  pkg.installed:
+  pkg.latest:
     - name: salt-minion
-    - version: {{ version }}
+    - fromrepo: clove
+    - refresh: True
     - require:
-      {% for repo in repos %}
-      - pkgrepo: ceph.repo.{{ repo.name }}
-      {% endfor %}
+      - pkgrepo: ceph.repo
 
 ceph.minion.conf:
   file.managed:
@@ -37,4 +34,5 @@ ceph.minion.daemon:
     - name: salt-minion
     - enable: True
     - watch:
+      - pkg: ceph.minion.pkg
       - file: ceph.minion.conf

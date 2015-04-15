@@ -41,7 +41,7 @@ echo
 echo OK!
 
 printf '
-1) Define "/etc/salt/roster" before deploy salt minions, refer
-   to "examples/etc/roster" as an example.
+1) Define "/etc/salt/roster" before deploying salt minions, refer
+   to "/etc/salt/roster" as an example.
 2) Please modify config file "/etc/clove_deploy/clove.sls" to
    fit your cluster.\n'

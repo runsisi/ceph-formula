@@ -1,21 +1,13 @@
 ceph:
   ### repository for ceph and all other packages ###
-  repos:
-    - name: clove
-      humanname: All packages for ceph and others
-      baseurl: http://10.118.202.154/ZXTECS/0.87/el7/x86_64
-      gpgcheck: 0
+  repo: http://host/to/repo/clove/ceph/0.87/el7/x86_64/
+
+  ### FQDN or IP address of salt-master host ###
+  minion_master: 192.168.233.10
 
   ### NTP servers ###
   ntp_servers:
     - 192.168.233.10
-
-  ### salt-minion parameters ###
-  minion_master: 192.168.233.10
-  minion_version: 2014.7.0-3.el7
-
-  ### The version of ceph to be installed ###
-  ceph_version: 0.87-0.el7.centos
 
   ### ceph cluster keys ###
   mon_key: AQAAA8FU2AnFEhAA/5cDGZk5PjFjUMy8q7+Csw==

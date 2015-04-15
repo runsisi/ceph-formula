@@ -4,7 +4,6 @@
 import os
 import ConfigParser
 import logging
-import shlex
 from ..cfg import Cfg
 from ..cmd import (check_run, CommandExecutionError)
 from ..distro import distribution_information
@@ -78,78 +77,6 @@ def setup_pkgs(clove_dir):
         check_run(cmd)
     except CommandExecutionError as e:
         LOG.warning('Execute ceph-formula installer failed: {0}'.format(e))
-        return False
-
-    return True
-
-
-def setup_salt():
-    distro = distribution_information()
-
-    # TODO: support other distros
-    # TODO: check 'init' or 'systemd'
-    # TODO: open ports instead of shutdown firewall
-
-    if distro.name in ('redhat', 'centos'):
-        if distro.major == '7':
-            try:
-                # TODO: check 'iptables'?
-                LOG.debug('Stop system firewall')
-
-                cmd = 'systemctl disable firewalld'
-                cmd = shlex.split(cmd)
-
-                check_run(cmd)
-
-                LOG.debug('Enable salt service')
-
-                cmd = 'systemctl stop firewalld'
-                cmd = shlex.split(cmd)
-
-                check_run(cmd)
-
-                cmd = 'systemctl enable salt-master'
-                cmd = shlex.split(cmd)
-
-                check_run(cmd)
-
-                cmd = 'systemctl restart salt-master'
-                cmd = shlex.split(cmd)
-
-                check_run(cmd)
-            except CommandExecutionError as e:
-                LOG.warning(e)
-                return False
-        else:
-            try:
-                LOG.debug('Stop system firewall')
-
-                cmd = 'chkconfig iptables off'
-                cmd = shlex.split(cmd)
-
-                check_run(cmd)
-
-                cmd = 'service iptables stop'
-                cmd = shlex.split(cmd)
-
-                check_run(cmd)
-
-                LOG.debug('Enable salt service')
-
-                cmd = 'chkconfig salt-master on'
-                cmd = shlex.split(cmd)
-
-                check_run(cmd)
-
-                cmd = 'service restart salt-master'
-                cmd = shlex.split(cmd)
-
-                check_run(cmd)
-            except CommandExecutionError as e:
-                LOG.warning(e)
-                return False
-    else:
-        LOG.error('Not supported distro: {0}'.format(distro.distro))
         return False
 
     return True

@@ -8,8 +8,8 @@
 {% set bootstrap_osd_key = ceph.bootstrap_osd_key | default('', True) %}
 {% set bootstrap_mds_key = ceph.bootstrap_mds_key | default('', True) %}
 
-{% set mon_id = ceph.mon.mon_id | default(grains['id'], True) %}
-{% set mon_addr = ceph.mon.mon_addr | default('', True) %}
+{% set mon_id = ceph.mon_id | default(grains['id'], True) %}
+{% set mon_addr = ceph.mon_addr | default('', True) %}
 
 include:
   - ceph.conf
@@ -36,16 +36,12 @@ ceph.mon:
     - mon_key: {{ mon_key }}
     - mon_addr: {{ mon_addr }}
     - cluster: {{ cluster }}
-    - require:
-      - ceph_conf: ceph.conf
 
-ceph.mon.daemon:
-  service.running:
+ceph.mon.service:
+  service.enabled:
     - name: ceph
-    - enable: True
-    - watch:
+    - require:
       - ceph_mon: ceph.mon
-      - ceph_conf: ceph.conf
 
 {% if auth_type == 'cephx' %}
 
@@ -61,7 +57,7 @@ ceph.client.admin.auth:
     - mds_caps: allow
     - cluster: {{ cluster }}
     - require:
-      - ceph_mon: ceph.mon.daemon
+      - service: ceph.mon.service
 
 ceph.client.admin.keyring:
   ceph_key.keyring_present:

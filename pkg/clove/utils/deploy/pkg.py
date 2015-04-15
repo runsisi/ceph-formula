@@ -60,7 +60,7 @@ def install_pkgs(pkgs, timeout):
 
     run(cmd)
 
-    LOG.debug('yum clean all')
+    LOG.debug('yum clean all before installing packages')
     cmd = ['yum']
     cmd.append('clean')
     cmd.append('all')
@@ -80,6 +80,13 @@ def install_pkgs(pkgs, timeout):
         except CommandExecutionError as e:
             LOG.warning('Failed to install pkg: {0}\nReason: {1}'.format(pkg, e))
             return False
+
+    LOG.debug('yum clean all after packages installed')
+    cmd = ['yum']
+    cmd.append('clean')
+    cmd.append('all')
+
+    run(cmd)
 
     return True
 

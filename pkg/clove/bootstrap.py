@@ -9,11 +9,14 @@ import sys
 import logging
 import logging.handlers
 import argparse
+import shlex
 
 CLOVE_DIR = os.path.dirname(__file__)
 sys.path.append(CLOVE_DIR)
 import utils.log as clovelog
 import utils.deploy as clovedeploy
+import utils.cmd as clovecmd
+import utils.distro as clovedistro
 
 LOG = logging.getLogger('bootstrap')
 
@@ -56,9 +59,9 @@ def main():
         LOG.error('setup_pkgs failed')
         return 1
 
-    LOG.debug('Post install process')
-    if not post_install():
-        LOG.error('post_install failed')
+    LOG.debug('Setup salt: stop firewall etc.')
+    if not setup_salt():
+        LOG.error('setup_salt failed')
         return 1
 
     return 0
@@ -75,16 +78,80 @@ def parse_args():
     return parser.parse_args()
 
 
-def post_install():
+def setup_salt():
     LOG.debug('Setup salt environment')
 
-    if not clovedeploy.setup_salt():
-        LOG.error('setup_salt failed')
+    distro = clovedistro.distribution_information()
+
+    # TODO: support other distros
+    # TODO: check 'init' or 'systemd'
+    # TODO: open ports instead of shutdown firewall
+
+    if distro.name in ('redhat', 'centos'):
+        if distro.major == '7':
+            try:
+                # TODO: check 'iptables'?
+                LOG.debug('Stop system firewall')
+
+                cmd = 'systemctl disable firewalld'
+                cmd = shlex.split(cmd)
+
+                clovecmd.check_run(cmd)
+
+                LOG.debug('Enable salt service')
+
+                cmd = 'systemctl stop firewalld'
+                cmd = shlex.split(cmd)
+
+                clovecmd.check_run(cmd)
+
+                cmd = 'systemctl enable salt-master'
+                cmd = shlex.split(cmd)
+
+                clovecmd.check_run(cmd)
+
+                cmd = 'systemctl restart salt-master'
+                cmd = shlex.split(cmd)
+
+                clovecmd.check_run(cmd)
+            except clovecmd.CommandExecutionError as e:
+                LOG.warning(e)
+                return False
+        else:
+            try:
+                LOG.debug('Stop system firewall')
+
+                cmd = 'chkconfig iptables off'
+                cmd = shlex.split(cmd)
+
+                clovecmd.check_run(cmd)
+
+                cmd = 'service iptables stop'
+                cmd = shlex.split(cmd)
+
+                clovecmd.check_run(cmd)
+
+                LOG.debug('Enable salt service')
+
+                cmd = 'chkconfig salt-master on'
+                cmd = shlex.split(cmd)
+
+                clovecmd.check_run(cmd)
+
+                cmd = 'service restart salt-master'
+                cmd = shlex.split(cmd)
+
+                clovecmd.check_run(cmd)
+            except clovecmd.CommandExecutionError as e:
+                LOG.warning(e)
+                return False
+    else:
+        LOG.error('Not supported distro: {0}'.format(distro.distro))
         return False
 
     notes = '''
-1) Define "/etc/salt/roster" before deploy salt minions, refer
-   to "/etc/clove_deploy/examples/etc/roster" as an example.
+1) Define "/etc/salt/roster" before deploying salt minions, refer
+   to "/etc/salt/roster" as an example.
 2) Please modify config file "/etc/clove_deploy/clove.sls" to
    fit your cluster.
    '''

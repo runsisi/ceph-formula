@@ -33,17 +33,10 @@ ceph.osd.{{ data }}:
       - ceph_key: ceph.bootstrap-osd.keyring
     {% endif %}
     - require_in:
-      - service: ceph.osd.daemon
+      - service: ceph.osd.service
 
 {% endfor %}
 
-ceph.osd.daemon:
-  service.running:
+ceph.osd.service:
+  service.enabled:
     - name: ceph
-    - enable: True
-    {% if auth_type == 'cephx' %}
-    - requre:
-      ceph_key: ceph.bootstrap-osd.keyring
-    {% endif %}
-    - watch:
-      - ceph_conf: ceph.conf

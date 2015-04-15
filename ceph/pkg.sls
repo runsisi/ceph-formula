@@ -1,16 +1,12 @@
 {% from 'ceph/lookup.jinja' import ceph with context %}
 
-{% set repos = ceph.repos | default({}, True) %}
-{% set version = ceph.ceph_version %}
-
 include:
   - ceph.repo
 
 ceph.pkg:
-  pkg.installed:
+  pkg.latest:
     - name: ceph
-    - version: {{ version }}
+    - fromrepo: clove
+    - refresh: True
     - require:
-      {% for repo in repos %}
-      - pkgrepo: ceph.repo.{{ repo.name }}
-      {% endfor %}
+      - pkgrepo: ceph.repo
