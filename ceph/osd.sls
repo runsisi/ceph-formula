@@ -19,9 +19,8 @@ ceph.bootstrap-osd.keyring:
     - entity_key: {{ bootstrap_osd_key }}
 {% endif %}
 
-{% for osd in osds %}
-{% set data = osd['data'] %}
-{% set journal = osd['journal'] | default('') %}
+{% for data, journal in osds.iteritems() %}
+{% set journal = journal if journal != None else '' %}
 
 ceph.osd.{{ data }}:
   ceph_osd.present:

@@ -26,11 +26,7 @@ ceph:
 
   ### ceph OSD(s) to be created ###
   osds:
-    ### data and journal on the same disk /dev/sdb
-    #- data: /dev/sdb
-    ### data on /dev/sdc and journal on /dev/sde
-    #- data: /dev/sdc
-    #  journal: /dev/sde
-    ### data on /dev/sdd and journal on /dev/sde
-    #- data: /dev/sdd
-    #  journal: /dev/sde
+    #/dev/sdb: /dev/sdb    # data and journal on the same disk /dev/sdb
+    #/dev/sdc:             # data and journal on the same disk /dev/sdc
+    #/dev/sdd: /dev/sdf    # data on /dev/sdd and journal on /dev/sdf
+    #/dev/sde: /dev/sdf    # data on /dev/sde and journal on /dev/sdf
