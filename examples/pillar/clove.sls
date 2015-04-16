@@ -1,9 +1,9 @@
 ceph:
   ### repository for ceph and all other packages ###
-  repo: http://host/to/repo/clove/ceph/0.87/el7/x86_64/
+  repository: http://host/to/repo/clove/ceph/0.87/el7/x86_64/
 
   ### FQDN or IP address of salt-master host ###
-  minion_master: 192.168.233.10
+  salt_master: 192.168.233.10
 
   ### NTP servers ###
   ntp_servers:

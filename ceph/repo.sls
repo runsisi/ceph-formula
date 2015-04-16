@@ -1,6 +1,6 @@
 {% from 'ceph/lookup.jinja' import ceph with context %}
 
-{% set repo = ceph.repo %}
+{% set repo = ceph.repository %}
 
 ceph.repo:
   pkgrepo.managed:

@@ -1,6 +1,6 @@
 {% from 'ceph/lookup.jinja' import ceph with context %}
 
-{% set master = ceph.minion_master %}
+{% set master = ceph.salt_master %}
 
 {% set clove = {
     'master': master,

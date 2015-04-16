@@ -7,7 +7,7 @@ import logging
 from ..cfg import Cfg
 from ..cmd import (check_run, CommandExecutionError)
 from ..distro import distribution_information
-from .pkg import (backup_repo, setup_repo, restore_repo, install_pkgs)
+from .pkg import (setup_repo, remove_repo, install_pkgs)
 
 LOG = logging.getLogger(__name__)
 
@@ -43,25 +43,22 @@ def setup_pkgs(clove_dir):
         pkgs = pkgs[:-1]
     LOG.info('Got package list to install: {0}'.format(pkgs))
 
-    LOG.debug('Backup yum repo')
-    backup_repo()
-
     path = ''
     try:
-        LOG.debug('Setup clove yum repo')
+        LOG.debug('Setup clove-deploy repo')
         path = setup_repo(pkgs_dir)
         if not path:
             LOG.warning('Call setup_repo failed')
             return False
 
-        LOG.debug('Install clove pkgs: {0}'.format(pkgs))
+        LOG.debug('Install clove-deploy pkgs: {0}'.format(pkgs))
         if not install_pkgs(pkgs, timeout):
             LOG.warning('Call install_pkgs failed, pkgs: {0}'
                         .format(pkgs))
             return False
     finally:
-        LOG.debug('Restore yum repo')
-        restore_repo(path)
+        LOG.debug('Remove clove-deploy repo')
+        remove_repo(path)
 
     # install ceph-formula
     LOG.debug('Install ceph-formula')

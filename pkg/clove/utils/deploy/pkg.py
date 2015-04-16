@@ -15,8 +15,8 @@ def setup_repo(pkgs_dir):
     os.close(fd)
 
     repo = {
-        'reponame': 'clove',
-        'name': 'Packages for clove',
+        'reponame': 'clove-deploy',
+        'name': 'Packages for clove-deploy',
         'baseurl': 'file://{0}'.format(pkgs_dir),
         'gpgcheck': 0
     }
@@ -33,7 +33,7 @@ def setup_repo(pkgs_dir):
         LOG.warning(e)
         return ''
 
-    repopath = '/etc/yum.repos.d/{0}'.format('clove.repo')
+    repopath = '/etc/yum.repos.d/{0}'.format('clove-deploy.repo')
 
     LOG.debug('Create repo file: {0}'.format(repopath))
 
@@ -71,6 +71,8 @@ def install_pkgs(pkgs, timeout):
 
     for pkg in pkgs:
         cmd = ['yum']
+        cmd.append('--disablerepo={0}'.format('*'))
+        cmd.append('--enablerepo={0}'.format('clove-deploy'))
         cmd.append('-y')
         cmd.append('install')
         cmd.append(pkg)
@@ -91,22 +93,6 @@ def install_pkgs(pkgs, timeout):
     return True
 
 
-def backup_repo():
-    repodir = '/etc/yum.repos.d/'
-
-    for fn in os.listdir(repodir):
-        fromfn = os.path.join(repodir, fn)
-        tofn = os.path.join(repodir, fn + '.bak')
-        os.rename(fromfn, tofn)
-
-
-def restore_repo(cloverepo):
-    repodir = '/etc/yum.repos.d/'
-
+def remove_repo(cloverepo):
     if os.path.exists(cloverepo):
         os.remove(cloverepo)
-
-    for fn in os.listdir(repodir):
-        fromfn = os.path.join(repodir, fn)
-        tofn = os.path.join(repodir, fn[:-4])
-        os.rename(fromfn, tofn)
