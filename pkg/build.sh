@@ -12,7 +12,7 @@ trap 'cleanup' EXIT
 
 cleanup() {
     rm -rf $tmpdir
-    rm -rf $tmpxz
+    rm -rf $tmpbz2
     rm -rf $tmpbin
 }
 
@@ -52,10 +52,10 @@ fi
 
 out=$outdir/clove-deploy-$(date +%Y-%m-%d).bin
 
-# create a .xz compressed fileC
+# create a .bz2 compressed fileC
 
-if ! which xz > /dev/null 2>&1; then
-    logerror 'No xz compression tool found'
+if ! which bzip2 > /dev/null 2>&1; then
+    logerror 'No bzip2 compression tool found'
 fi
 
 # collect clove
