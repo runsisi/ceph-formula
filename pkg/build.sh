@@ -23,11 +23,8 @@ usage() {
     exit 1
 }
 
-while getopts 'd:o:' opt; do
+while getopts 'o:' opt; do
     case $opt in
-        d)
-        distro=$OPTARG
-        ;;
         o)
         outdir=$OPTARG
         ;;
@@ -43,14 +40,6 @@ if [ $# -ne 0 ]; then
     usage
 fi
 
-if [ x$distro = x ]; then
-    distro=el7
-fi
-
-if [ ! -d $CWD/pkgs-$distro ]; then
-    logerror 'No packages found'
-fi
-
 if [ x$outdir = x ]; then
     outdir=$CWD
 else
@@ -61,7 +50,7 @@ else
     mkdir -p $outdir
 fi
 
-out=$outdir/clove-deploy-$(date +%Y-%m-%d).$distro.bin
+out=$outdir/clove-deploy-$(date +%Y-%m-%d).bin
 
 # create a .xz compressed fileC
 
@@ -77,7 +66,7 @@ cp -rf $CWD/clove $tmpdir
 
 # collect packages
 
-cp -rf $CWD/pkgs-$distro $tmpdir/clove/
+cp -rf $CWD/pkgs-* $tmpdir/clove/
 
 # collect ceph-formula
 
@@ -92,11 +81,11 @@ cp -rf $CWD/../examples     $formula_dir
 cp -rf $CWD/../reactor      $formula_dir
 cp -ff $CWD/../install.sh   $formula_dir
 
-tmpxz=$(mktemp --suffix=.clove)
+tmpbz2=$(mktemp --suffix=.clove)
 
-loginfo 'Create .xz compressed file'
+loginfo 'Create .bz2 compressed file'
 cd $tmpdir
-if ! tar -cJf $tmpxz clove/ > /dev/null; then
+if ! tar -cjf $tmpbz2 clove/ > /dev/null; then
     logerror 'Failed to compress'
 fi
 
@@ -105,7 +94,7 @@ fi
 tmpbin=$(mktemp --suffix=.clove)
 
 loginfo 'Generate bin'
-if ! sh $CWD/genbin.sh -o $tmpbin $tmpxz; then
+if ! sh $CWD/genbin.sh -o $tmpbin $tmpbz2; then
     error 'Failed to generate'
 fi
 
