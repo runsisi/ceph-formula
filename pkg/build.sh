@@ -12,7 +12,7 @@ trap 'cleanup' EXIT
 
 cleanup() {
     rm -rf $tmpdir
-    rm -rf $tmpbz2
+    rm -rf $tmpgz
     rm -rf $tmpbin
 }
 
@@ -52,10 +52,10 @@ fi
 
 out=$outdir/clove-deploy-$(date +%Y-%m-%d).bin
 
-# create a .bz2 compressed fileC
+# create a gzip compressed fileC
 
-if ! which bzip2 > /dev/null 2>&1; then
-    logerror 'No bzip2 compression tool found'
+if ! which gzip > /dev/null 2>&1; then
+    logerror 'No gzip compression tool found'
 fi
 
 # collect clove
@@ -81,11 +81,11 @@ cp -rf $CWD/../examples     $formula_dir
 cp -rf $CWD/../reactor      $formula_dir
 cp -ff $CWD/../install.sh   $formula_dir
 
-tmpbz2=$(mktemp --suffix=.clove)
+tmpgz=$(mktemp --suffix=.clove)
 
-loginfo 'Create .bz2 compressed file'
+loginfo 'Create gzip compressed file'
 cd $tmpdir
-if ! tar -cjf $tmpbz2 clove/ > /dev/null; then
+if ! tar -czf $tmpgz clove/ > /dev/null; then
     logerror 'Failed to compress'
 fi
 
@@ -94,7 +94,7 @@ fi
 tmpbin=$(mktemp --suffix=.clove)
 
 loginfo 'Generate bin'
-if ! sh $CWD/genbin.sh -o $tmpbin $tmpbz2; then
+if ! sh $CWD/genbin.sh -o $tmpbin $tmpgz; then
     error 'Failed to generate'
 fi
 

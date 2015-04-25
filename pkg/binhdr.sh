@@ -151,8 +151,8 @@ tail -n +__HDRLINECNT__ $0 > $tmpdata
 
 logdebug 'Done'
 
-if ! which bzip2 > /dev/null 2>&1; then
-    logerror 'No bzip2 compression tool found'
+if ! which gzip > /dev/null 2>&1; then
+    logerror 'No gzip compression tool found'
 fi
 
 if which md5sum > /dev/null 2>&1; then
@@ -168,8 +168,8 @@ fi
 
 # bootstrap
 tmpdir=$(mktemp --directory --suffix=.clove)
-if ! tar -xjf $tmpdata -C $tmpdir > /dev/null 2>&1; then
-    logerror 'Not an .bz2 package?'
+if ! tar -xzf $tmpdata -C $tmpdir > /dev/null 2>&1; then
+    logerror 'Not an .gz package?'
 fi
 
 if [ ! -f $tmpdir/$BOOTSTRAP ];  then
