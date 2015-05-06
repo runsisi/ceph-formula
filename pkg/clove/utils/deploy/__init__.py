@@ -5,7 +5,6 @@ import os
 import ConfigParser
 import logging
 from ..cfg import Cfg
-from ..cmd import (check_run, CommandExecutionError)
 from ..distro import distribution_information
 from .pkg import (setup_repo, remove_repo, install_pkgs)
 
@@ -59,21 +58,5 @@ def setup_pkgs(clove_dir):
     finally:
         LOG.debug('Remove clove-deploy repo')
         remove_repo(path)
-
-    # install ceph-formula
-    LOG.debug('Install ceph-formula')
-
-    formula_dir = os.path.join(clove_dir, 'ceph-formula')
-    installer = os.path.join(formula_dir, 'install.sh')
-
-    cmd = ['/bin/sh']
-    cmd.append(installer)
-
-    LOG.debug('Call ceph-formula installer')
-    try:
-        check_run(cmd)
-    except CommandExecutionError as e:
-        LOG.warning('Execute ceph-formula installer failed: {0}'.format(e))
-        return False
 
     return True

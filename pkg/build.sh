@@ -18,7 +18,7 @@ cleanup() {
 
 usage() {
     printf "Usage:\n"
-    printf "   $(basename $0) [-d distro] [-o /path/to/output]\n\n"
+    printf "   $(basename $0) [-o /path/to/output]\n\n"
 
     exit 1
 }

@@ -10,6 +10,7 @@
 
 include:
   - ceph.conf
+  - ceph.crontab
 
 {% if auth_type == 'cephx' %}
 ceph.bootstrap-osd.keyring:
@@ -32,8 +33,9 @@ ceph.osd.{{ data }}:
     - name: {{ data }}
     - journal: {{ journal }}
     - cluster: {{ cluster }}
-    {% if auth_type == 'cephx' %}
     - require:
+      - ceph_conf: ceph.conf
+    {% if auth_type == 'cephx' %}
       - ceph_key: ceph.bootstrap-osd.keyring
     {% endif %}
     - require_in:

@@ -16,6 +16,7 @@ import utils.log as clog
 import utils.deploy as cdeploy
 import utils.cmd as ccmd
 import utils.distro as cdistro
+from utils.cmd import (check_run, CommandExecutionError)
 
 LOG = logging.getLogger('bootstrap')
 
@@ -75,10 +76,27 @@ def main():
     level = levels[verbose]
     sh.setLevel(level)
 
-    LOG.debug('Setup clove pkgs')
-    if not cdeploy.setup_pkgs(CLOVE_DIR):
-        LOG.error('setup_pkgs failed')
-        return 1
+    if not args.skip_salt:
+        LOG.debug('Setup clove pkgs')
+        if not cdeploy.setup_pkgs(CLOVE_DIR):
+            LOG.error('setup_pkgs failed')
+            return 1
+
+    # install ceph-formula
+    LOG.debug('Install ceph-formula')
+
+    formula_dir = os.path.join(CLOVE_DIR, 'ceph-formula')
+    installer = os.path.join(formula_dir, 'install.sh')
+
+    cmd = ['/bin/sh']
+    cmd.append(installer)
+
+    LOG.debug('Call ceph-formula installer')
+    try:
+        check_run(cmd)
+    except CommandExecutionError as e:
+        LOG.warning('Execute ceph-formula installer failed: {0}'.format(e))
+        return False
 
     LOG.debug('Setup salt: stop firewall etc.')
     if not setup_salt():
@@ -96,6 +114,11 @@ def parse_args():
         '-v', '--verbose',
         action='count', default=None,
         help='be more verbose'
+    )
+    parser.add_argument(
+        '-s', '--skip-salt',
+        action='store_true', default=False,
+        help='do not try to install salt packages'
     )
 
     return parser.parse_args()
@@ -121,12 +144,12 @@ def setup_salt():
 
                 ccmd.check_run(cmd)
 
-                LOG.debug('Enable salt service')
-
                 cmd = 'systemctl stop firewalld'
                 cmd = shlex.split(cmd)
 
                 ccmd.check_run(cmd)
+
+                LOG.debug('Enable salt service')
 
                 cmd = 'systemctl enable salt-master'
                 cmd = shlex.split(cmd)

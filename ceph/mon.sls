@@ -13,6 +13,7 @@
 
 include:
   - ceph.conf
+  - ceph.crontab
 
 {% if auth_type == 'cephx' %}
 ceph.mon.dummy.files:
@@ -36,6 +37,8 @@ ceph.mon:
     - mon_key: {{ mon_key }}
     - mon_addr: {{ mon_addr }}
     - cluster: {{ cluster }}
+    - require:
+      - ceph_conf: ceph.conf
 
 ceph.mon.service:
   service.enabled:
