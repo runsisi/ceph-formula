@@ -216,7 +216,7 @@ class _CephOneLineTag(_CephTag):
             os.fsync(fobj.fileno())
 
         try:
-            os.rename(path, self.path)
+            shutil.move(path, self.path)
         except OSError as e:
             os.remove(path)
             raise
@@ -279,7 +279,7 @@ class _CephMultiLineTag(_CephTag):
             os.fsync(fobj.fileno())
 
         try:
-            os.rename(path, self.path)
+            shutil.move(path, self.path)
         except OSError as e:
             os.remove(path)
             raise

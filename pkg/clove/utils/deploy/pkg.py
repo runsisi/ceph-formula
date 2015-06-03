@@ -4,6 +4,7 @@
 import logging
 import os
 import tempfile
+import shutil
 from ..repo import yum_repo
 from ..cmd import (run, check_run, CommandExecutionError)
 
@@ -38,7 +39,7 @@ def setup_repo(pkgs_dir):
     LOG.debug('Create repo file: {0}'.format(repopath))
 
     try:
-        os.rename(path, repopath)
+        shutil.move(path, repopath)
     except OSError as e:
         LOG.warning(e)
         os.remove(path)
