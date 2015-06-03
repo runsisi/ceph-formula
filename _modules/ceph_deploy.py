@@ -4202,7 +4202,9 @@ def conf_manage(ctx,
 
     parser = cfg.open()
 
+    # sections in input dict
     sections = ctx.keys()
+    # sections already exists in ceph.conf
     fsections = parser.sections()
 
     add = set(sections)
@@ -4236,7 +4238,8 @@ def conf_manage(ctx,
         opts = ctx[sec].items()
 
         for opt, val in opts:
-            parser.set(sec, opt, val)
+            # SafeConfigParser only accepts str type
+            parser.set(sec, opt, str(val))
             cfgchanges[sec].append('New option: {opt} = {val}'.format(
                 opt=opt, val=val))
 
@@ -4262,7 +4265,7 @@ def conf_manage(ctx,
                 )
 
             for opt, val in opts_add:
-                parser.set(sec, opt, val)
+                parser.set(sec, opt, str(val))
 
                 sectionchanges.append('New option: {opt} = {val}'.format(
                     opt=opt, val=val)
