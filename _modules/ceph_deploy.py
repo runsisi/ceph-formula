@@ -1877,23 +1877,8 @@ class _CephOsd(object):
             if len(diff) != 1:
                 raise AssertionError('Disk operation racing with others?')
 
-        path = ''
-
-        try:
-            if rddev.is_part():
-                fstype = rddev.get_part_fs()
-
-                path = rddev.mount_tmp(fstype)
-            else:
-                path = self.ddev.dev
-
-            # write signature
-            self.__write_signature(path, self.__signature())
-            self._state = _CephOsdState.PREPARED
-        finally:
-            if rddev.is_part():
-                rddev.umount(path)
-                os.rmdir(path)
+        # change state
+        self._state = _CephOsdState.PREPARED
 
     def __activate(self):
         assert self._state >= _CephOsdState.PREPARED
@@ -1962,43 +1947,6 @@ class _CephOsd(object):
 
             return ret
 
-        if self.__old_signature is None:
-            return _error(ret, 'OSD: ({d}, {j}) is prepared, but not by us, skip'
-                          .format(d=self.data, j=self.journal))
-
-        if not self.__compare_signature(self.__old_signature):
-            # signature mismatch
-            nsig = self.__parse_signature(self.__signature())
-            osig = self.__parse_signature(self.__old_signature)
-
-            ret['result'] = False
-            ret['comment'] = ['OSD: ({d}, {j}) is prepared, but arguments changed '
-                              'since last preparation, skip'
-                              .format(d=self.data, j=self.journal),
-                              {'new config': [], 'old config': []}]
-            new = ret['comment'][1]['new config']
-            old = ret['comment'][1]['old config']
-
-            new.append('cluster: {0}'.format(nsig['cluster']))
-            new.append('fsid: {0}'.format(nsig['fsid']))
-            new.append('data: {0}'.format(nsig['data']))
-            new.append('journal: {0}'.format(nsig['journal']))
-            new.append('data type: {0}'.format(nsig['dtype']))
-            new.append('journal type: {0}'.format(nsig['jtype']))
-
-            old.append('cluster: {0}'.format(osig['cluster']))
-            old.append('fsid: {0}'.format(osig['fsid']))
-            old.append('data: {0}'.format(osig['data']))
-            old.append('journal: {0}'.format(osig['journal']))
-            old.append('data type: {0}'.format(osig['dtype']))
-            old.append('journal type: {0}'.format(osig['jtype']))
-
-            return ret
-
-        # signature match
-
-        # TODO: Check if this is a disk from another machine
-
         ret['comment'] = 'OSD: ({d}, {j}) is prepared, skip'\
             .format(d=self.data, j=self.journal)
 
@@ -2023,43 +1971,6 @@ class _CephOsd(object):
             # not prepared
             return _error(ret, 'OSD: ({d}, {j}) is not prepared, skip'
                           .format(d=self.data, j=self.journal))
-
-        if self.__old_signature is None:
-            return _error(ret, 'OSD: ({d}, {j}) is prepared, but not by us, skip'
-                          .format(d=self.data, j=self.journal))
-
-        if not self.__compare_signature(self.__old_signature):
-            # signature mismatch
-            nsig = self.__parse_signature(self.__signature())
-            osig = self.__parse_signature(self.__old_signature)
-
-            ret['result'] = False
-            ret['comment'] = ['OSD: ({d}, {j}) is prepared, but arguments changed '
-                              'since last preparation, skip'
-                              .format(d=self.data, j=self.journal),
-                              {'new config': [], 'old config': []}]
-            new = ret['comment'][1]['new config']
-            old = ret['comment'][1]['old config']
-
-            new.append('cluster: {0}'.format(nsig['cluster']))
-            new.append('fsid: {0}'.format(nsig['fsid']))
-            new.append('data: {0}'.format(nsig['data']))
-            new.append('journal: {0}'.format(nsig['journal']))
-            new.append('data type: {0}'.format(nsig['dtype']))
-            new.append('journal type: {0}'.format(nsig['jtype']))
-
-            old.append('cluster: {0}'.format(osig['cluster']))
-            old.append('fsid: {0}'.format(osig['fsid']))
-            old.append('data: {0}'.format(osig['data']))
-            old.append('journal: {0}'.format(osig['journal']))
-            old.append('data type: {0}'.format(osig['dtype']))
-            old.append('journal type: {0}'.format(osig['jtype']))
-
-            return ret
-
-        # signature match
-
-        # TODO: Check if this is a disk from another machine
 
         # check if ever been activated
 
@@ -2127,41 +2038,8 @@ class _CephOsd(object):
 
             self.__prepare()
             datachanges.append('Prepare device')
-        elif self.__old_signature is None:
-            return _error(ret, 'OSD: ({d}, {j}) is prepared, but not by us, skip'
-                          .format(d=self.data, j=self.journal))
-        elif not self.__compare_signature(self.__old_signature):
-            # signature mismatch
-            nsig = self.__parse_signature(self.__signature())
-            osig = self.__parse_signature(self.__old_signature)
-
-            ret['result'] = False
-            ret['comment'] = ['OSD: ({d}, {j}) is prepared, but arguments changed '
-                              'since last preparation, skip'
-                              .format(d=self.data, j=self.journal),
-                              {'new config': [], 'old config': []}]
-            new = ret['comment'][1]['new config']
-            old = ret['comment'][1]['old config']
-
-            new.append('cluster: {0}'.format(nsig['cluster']))
-            new.append('fsid: {0}'.format(nsig['fsid']))
-            new.append('data: {0}'.format(nsig['data']))
-            new.append('journal: {0}'.format(nsig['journal']))
-            new.append('data type: {0}'.format(nsig['dtype']))
-            new.append('journal type: {0}'.format(nsig['jtype']))
-
-            old.append('cluster: {0}'.format(osig['cluster']))
-            old.append('fsid: {0}'.format(osig['fsid']))
-            old.append('data: {0}'.format(osig['data']))
-            old.append('journal: {0}'.format(osig['journal']))
-            old.append('data type: {0}'.format(osig['dtype']))
-            old.append('journal type: {0}'.format(osig['jtype']))
-
-            return ret
-
-            # TODO: Check if this is a disk from another machine
-
-        # new prepared device or signature match
+        
+        # new prepared device or has been prepared device
 
         # check if ever been activated
 
@@ -2223,43 +2101,6 @@ class _CephOsd(object):
                 .format(d=self.data, j=self.journal)
 
             return ret
-
-        if self.__old_signature is None:
-            return _error(ret, 'OSD: ({d}, {j}) is prepared, but not by us, skip'
-                          .format(d=self.data, j=self.journal))
-
-        if not self.__compare_signature(self.__old_signature):
-            # signature mismatch
-            nsig = self.__parse_signature(self.__signature())
-            osig = self.__parse_signature(self.__old_signature)
-
-            ret['result'] = False
-            ret['comment'] = ['OSD: ({d}, {j}) is prepared, but arguments changed '
-                              'since last preparation, skip'
-                              .format(d=self.data, j=self.journal),
-                              {'new config': [], 'old config': []}]
-            new = ret['comment'][1]['new config']
-            old = ret['comment'][1]['old config']
-
-            new.append('cluster: {0}'.format(nsig['cluster']))
-            new.append('fsid: {0}'.format(nsig['fsid']))
-            new.append('data: {0}'.format(nsig['data']))
-            new.append('journal: {0}'.format(nsig['journal']))
-            new.append('data type: {0}'.format(nsig['dtype']))
-            new.append('journal type: {0}'.format(nsig['jtype']))
-
-            old.append('cluster: {0}'.format(osig['cluster']))
-            old.append('fsid: {0}'.format(osig['fsid']))
-            old.append('data: {0}'.format(osig['data']))
-            old.append('journal: {0}'.format(osig['journal']))
-            old.append('data type: {0}'.format(osig['dtype']))
-            old.append('journal type: {0}'.format(osig['jtype']))
-
-            return ret
-
-        # signature match
-
-        # TODO: Check if this is a disk from another machine
 
         if self._state > _CephOsdState.PREPARED:
             return _error(ret, 'OSD: ({d}, {j}) is activated, skip'
@@ -2323,43 +2164,6 @@ class _CephOsd(object):
                 .format(d=self.data, j=self.journal)
 
             return ret
-
-        if self.__old_signature is None:
-            return _error(ret, 'OSD: ({d}, {j}) is prepared, but not by us, skip'
-                          .format(d=self.data, j=self.journal))
-
-        if not self.__compare_signature(self.__old_signature):
-            # signature mismatch
-            nsig = self.__parse_signature(self.__signature())
-            osig = self.__parse_signature(self.__old_signature)
-
-            ret['result'] = False
-            ret['comment'] = ['OSD: ({d}, {j}) is prepared, but arguments changed '
-                              'since last preparation, skip'
-                              .format(d=self.data, j=self.journal),
-                              {'new config': [], 'old config': []}]
-            new = ret['comment'][1]['new config']
-            old = ret['comment'][1]['old config']
-
-            new.append('cluster: {0}'.format(nsig['cluster']))
-            new.append('fsid: {0}'.format(nsig['fsid']))
-            new.append('data: {0}'.format(nsig['data']))
-            new.append('journal: {0}'.format(nsig['journal']))
-            new.append('data type: {0}'.format(nsig['dtype']))
-            new.append('journal type: {0}'.format(nsig['jtype']))
-
-            old.append('cluster: {0}'.format(osig['cluster']))
-            old.append('fsid: {0}'.format(osig['fsid']))
-            old.append('data: {0}'.format(osig['data']))
-            old.append('journal: {0}'.format(osig['journal']))
-            old.append('data type: {0}'.format(osig['dtype']))
-            old.append('journal type: {0}'.format(osig['jtype']))
-
-            return ret
-
-        # signature match
-
-        # TODO: Check if this is a disk from another machine
 
         osdid = self.__old_id
         fstype = self.__old_fstype
@@ -2459,43 +2263,6 @@ class _CephOsd(object):
                 .format(d=self.data, j=self.journal)
 
             return ret
-
-        if self.__old_signature is None:
-            return _error(ret, 'OSD: ({d}, {j}) is prepared, but not by us, skip'
-                          .format(d=self.data, j=self.journal))
-
-        if not self.__compare_signature(self.__old_signature):
-            # signature mismatch
-            nsig = self.__parse_signature(self.__signature())
-            osig = self.__parse_signature(self.__old_signature)
-
-            ret['result'] = False
-            ret['comment'] = ['OSD: ({d}, {j}) is prepared, but arguments changed '
-                              'since last preparation, skip'
-                              .format(d=self.data, j=self.journal),
-                              {'new config': [], 'old config': []}]
-            new = ret['comment'][1]['new config']
-            old = ret['comment'][1]['old config']
-
-            new.append('cluster: {0}'.format(nsig['cluster']))
-            new.append('fsid: {0}'.format(nsig['fsid']))
-            new.append('data: {0}'.format(nsig['data']))
-            new.append('journal: {0}'.format(nsig['journal']))
-            new.append('data type: {0}'.format(nsig['dtype']))
-            new.append('journal type: {0}'.format(nsig['jtype']))
-
-            old.append('cluster: {0}'.format(osig['cluster']))
-            old.append('fsid: {0}'.format(osig['fsid']))
-            old.append('data: {0}'.format(osig['data']))
-            old.append('journal: {0}'.format(osig['journal']))
-            old.append('data type: {0}'.format(osig['dtype']))
-            old.append('journal type: {0}'.format(osig['jtype']))
-
-            return ret
-
-        # signature match
-
-        # TODO: Check if this is a disk from another machine
 
         osdid = self.__old_id
         fstype = self.__old_fstype

@@ -94,7 +94,7 @@ detect_distro() {
 
 query() {
     printf 'Preparing to install clove-deploy:\n'
-    printf '   1) I am ready, please go\n'
+    printf '   1) I am ready, please go ahead\n'
     printf '   2) Not sure, quit\n'
 
     until [ x$ans != x ]; do
